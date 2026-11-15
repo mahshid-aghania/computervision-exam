@@ -185,6 +185,37 @@ a{color:var(--accent)}
   .scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:65}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ---- beginner-support layer ---- */
+.term{border-bottom:1.5px dotted var(--accent);cursor:pointer;transition:background .1s}
+.term:hover,.term:focus{background:color-mix(in srgb,var(--accent) 16%,transparent);outline:none}
+.overlay{position:fixed;inset:0;background:rgba(8,6,16,.5);z-index:80;display:grid;place-items:end center;backdrop-filter:blur(2px)}
+.gcard{background:var(--surface);width:100%;max-width:580px;max-height:86vh;overflow:auto;border-radius:18px 18px 0 0;border:1px solid var(--line);box-shadow:0 -10px 40px rgba(0,0,0,.35);padding:18px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));animation:pop .2s}
+.gcard .close{position:sticky;top:0;float:right;border:1px solid var(--line);background:var(--surface2);border-radius:10px;width:36px;height:36px;cursor:pointer;color:inherit;font-size:1.1rem}
+.gterm{font-family:var(--disp);font-size:1.6rem;font-weight:700;line-height:1.1}
+.gsay{color:var(--accent);font-weight:600;margin:5px 0}
+.gfa{direction:rtl;text-align:right;color:var(--muted);font-size:1.15rem;margin:3px 0}
+.gcard .r{margin:9px 0;font-size:1.04rem}
+.gcard .r b{color:var(--accent)}
+.gpic{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:8px;margin:9px 0}
+.gpic svg{display:block;width:100%;max-width:280px;margin:0 auto;height:auto}
+.meaningbox{border:1px solid var(--line);border-left:4px solid var(--yg);border-radius:0 12px 12px 0;background:var(--surface);box-shadow:var(--shadow);padding:14px 16px;margin:16px 0}
+.meaningbox h4{font-family:var(--disp);font-size:1rem;margin:12px 0 2px}
+.meaningbox h4:first-child{margin-top:0}
+.meaningbox .qa{margin:3px 0;font-size:1.02rem}
+.wordchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.wordchip{border:1px solid var(--line);background:var(--surface2);border-radius:999px;padding:6px 12px;font-size:.92rem;cursor:pointer}
+.wordchip b{border-bottom:1.5px dotted var(--accent)}
+.toolrow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 2px}
+.minibtn{border:1px solid var(--line);background:var(--surface2);color:var(--fg);border-radius:999px;padding:7px 13px;font-size:.86rem;font-weight:600;cursor:pointer}
+.minibtn:active{transform:translateY(1px)}
+.saybox{background:color-mix(in srgb,var(--accent) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:10px;padding:11px 14px;margin-top:9px;font-size:1.03rem}
+.idkpanel{border:1px solid var(--line);border-radius:12px;background:var(--surface2);padding:13px;margin-top:9px}
+.idkpanel .opt{margin:7px 0}
+.dictgroup{font-family:var(--disp);font-size:1.2rem;margin:24px 0 4px;border-bottom:2px solid var(--line);padding-bottom:6px}
+.symtab td:first-child{cursor:pointer}
+.hardlist .note{border-left:4px solid var(--pt)}
+.mapbox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:10px}
+.mapbox svg{min-width:640px}
 </style>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -1588,6 +1619,155 @@ const NOTES=[
  {name:'Pseudo-inverse',formula:'M⁺ = V S⁺ Uᵀ',meaning:'Best least-squares inverse; S⁺ inverts non-zero singular values.',ex:'P⁺ = Pᵀ(PPᵀ)⁻¹ in back-projection',lesson:'6.7'},
 ]},
 ];
+/* ========== GLOSSARY (tap-to-explain) ========== */
+/* [canonical, say-aloud, plain meaning, "like…", number example, lesson, farsi, aliases(|)] */
+const GTERMS=[
+['pinhole','pin-hole','the tiny hole that light passes through to make the picture','like a tiny window in a dark room','a 1 mm hole in a shoebox camera','1.1','سوراخ سوزنی'],
+['camera centre','camera center','the single point all light rays pass through','like the doorway everyone must walk through','written C = (0,0,0) for the camera itself','1.1','مرکز دوربین','camera centre|camera center|optical centre|optical center'],
+['image plane','image plane','the flat surface where the picture forms','like the cinema screen','the sensor, 640×480 pixels','1.1','صفحه تصویر'],
+['focal length','focal length','the distance from the hole to the image plane','like how far the projector sits from the screen','f = 400 pixels','1.1','فاصله کانونی'],
+['principal axis','principal axis','the straight line out of the hole, square to the image','like the centre line a camera points down','the +z (forward) direction','1.1','محور اصلی','principal axis|optical axis'],
+['principal point','principal point','where the centre line hits the image','like the exact middle of the photo','(cx, cy) = (320, 240)','1.1','نقطه اصلی'],
+['principal plane','principal plane','the flat plane through the centre, parallel to the image','like a wall through the camera facing the screen','row 3 of P describes it','6.5','صفحه اصلی'],
+['projection','pro-jec-tion','turning a 3D point into a 2D picture point','like a shadow on the wall','(2,1,8) → pixel (420,290)','1.2','تصویر‌کردن','projection|project|projected|projects'],
+['perspective','per-spec-tive','the way closer things look bigger','like a road that narrows into the distance','far tree looks small','1.3','پرسپکتیو'],
+['similar triangles','similar triangles','two triangles with the same shape but different size','like a photo and its enlargement','y/f = Y/Z','1.2','مثلث‌های متشابه'],
+['homogeneous coordinates','ho-mo-gee-nee-us','coordinates with one extra number glued on the end','like adding a zoom level to a point','(x,y) → (x,y,1)','2.1','مختصات همگن','homogeneous coordinates|homogeneous coordinate|homogeneous'],
+['cartesian','car-tee-zhan','ordinary (x, y) coordinates, no extra number','like a normal map grid reference','(3, 2)','2.1','دکارتی'],
+['scale factor','scale factor','the number that multiplies a whole point without changing it','like a zoom dial','k in k·(x,y,w)','2.1','ضریب مقیاس'],
+['point at infinity','point at infinity','a direction, a point infinitely far away','like where train tracks seem to meet','(a, b, 0)','2.2','نقطه در بی‌نهایت'],
+['vanishing point','vanishing point','the image spot where parallel lines seem to meet','like the far end of a straight road','(720, 240)','2.2','نقطه گریز'],
+['horizon','horizon','the line where vanishing points of a flat ground sit','like the sea meeting the sky','the middle line of the photo','2.2','افق'],
+['cross product','cross product','a way to combine two 3-number things into a new one at right angles','like finding the pole that two walls share','(4,1,1)×(4,2,1)=(−1,0,4)','2.3','ضرب خارجی'],
+['dot product','dot product','multiply matching numbers and add them up','like adding up a shopping bill','(0,1)·(0,2)=2','3.1','ضرب داخلی'],
+['vector','vector','a little list of numbers, a point or a direction','like an arrow with length and heading','(2, 0, 5)','2.1','بردار','vector|vectors'],
+['matrix','may-trix','a rectangle of numbers arranged in rows and columns','like a spreadsheet of numbers','a 3×3 grid','3.1','ماتریس','matrix|matrices'],
+['row','row','one horizontal line of a matrix, read left to right','like one line across a spreadsheet','row 1 = (1, 0, 0)','3.1','سطر','row|rows'],
+['column','column','one vertical line of a matrix, read top to bottom','like one column down a spreadsheet','the last column of [R|t] is t','3.1','ستون','column|columns'],
+['transpose','trans-pose','flip a matrix so rows become columns','like turning a table on its side','Rᵀ undoes rotation R','3.2','ترانهاده'],
+['inverse','in-verse','the matrix that undoes another','like a reverse button','R⁻¹ turns the point back','3.4','وارون'],
+['identity matrix','identity matrix','the matrix that changes nothing','like multiplying by 1','rows (1,0,0)(0,1,0)(0,0,1)','3.4','ماتریس همانی','identity matrix|identity'],
+['determinant','de-ter-mi-nant','one number telling if a matrix flips or shrinks space','like a "mirror?" flag','det R = +1 for a rotation','3.4','دترمینان'],
+['orthogonal','or-thog-o-nal','rows (or columns) that are at right angles','like the corner of a room','RᵀR = I','3.4','متعامد'],
+['orthonormal','or-tho-nor-mal','at right angles AND each length exactly 1','like perfect graph-paper axes','rotation rows are orthonormal','3.4','متعامد یکه'],
+['perpendicular','per-pen-dic-u-lar','meeting at a right angle (90°)','like the corner of a page','dot product = 0','3.4','عمود'],
+['rotation matrix','rotation matrix','a table that turns a point or frame','like a steering wheel for directions','rows (0,1)(−1,0)','3.1','ماتریس دوران','rotation matrix|rotation'],
+['translation','trans-la-tion','a shift, moving without turning','like sliding a book across a table','t = −R·C','4.1','انتقال'],
+['extrinsic','ex-trin-sic','where the camera stands and how it is aimed','like the tripod position','[R | t]','4.2','پارامترهای بیرونی','extrinsic|extrinsics|extrinsic parameters'],
+['intrinsic','in-trin-sic','the camera\'s own lens and sensor settings','like the zoom built into the lens','K = (f 0 cx)(0 f cy)(0 0 1)','5.2','پارامترهای درونی','intrinsic|intrinsics|intrinsic parameters'],
+['camera frame','camera frame','measuring a point from the camera\'s point of view','like giving directions from where you stand','X_cam = (2, −10, −5)','3.1','دستگاه دوربین','camera frame|camera coordinates|camera-space|camera space'],
+['world frame','world frame','measuring a point from a fixed world origin','like map coordinates everyone agrees on','X = (4, 3, 0)','3.1','دستگاه جهانی','world frame|world coordinates'],
+['coordinates','co-or-di-nates','the numbers that say where a point is','like a seat number: row and column','(320, 240)','1.2','مختصات','coordinates|coordinate'],
+['depth','depth','how far in front of the camera a point is','like how far away someone is standing','Zc = 8','4.4','عمق'],
+['pixel','pix-el','one tiny dot of the picture','like one square on graph paper','pixel (420, 290)','5.1','پیکسل','pixel|pixels'],
+['skew','skew','a slant when pixels are not rectangles','like italic letters leaning over','s, almost always 0','5.3','اریبی'],
+['degrees of freedom','degrees of freedom','how many numbers you can change freely','like the knobs you can still turn','P has 11','6.4','درجات آزادی','degrees of freedom|degree of freedom'],
+['up to scale','up to scale','the same thing even if every number is multiplied by one constant','like a recipe for any number of servings','P and 2P are the same camera','6.4','تا یک ضریب مقیاس','up to scale|defined up to scale'],
+['rank','rank','how many truly independent rows a matrix has','like how many different ingredients, not copies','P has rank 3','6.2','رتبه'],
+['null vector','null vector','the input a matrix turns into all zeros','like the number that makes a machine output nothing','P·(C,1) = 0','6.5','بردار پوچ'],
+['null space','null space','all inputs a matrix sends to zero','like every key that does nothing','spanned by the camera centre','6.5','فضای پوچ'],
+['singular','sin-gu-lar','a matrix with no inverse (it squashes space)','like a one-way door you cannot reverse','det = 0','7.3','منفرد'],
+['non-singular','non-sin-gu-lar','a matrix that has an inverse','like a door that opens both ways','det ≠ 0','6.5','نامنفرد'],
+['finite projective camera','finite projective camera','a normal camera whose left 3×3 block has an inverse','like a well-behaved everyday camera','M is non-singular','6.5','دوربین تصویری متناهی'],
+['back-projection','back-pro-jec-tion','going from a pixel back to the ray it came from','like following a laser pointer backwards','ray dir = RᵀK⁻¹(u,v,1)','6.7','پس‌تصویر','back-projection|back projection|back-project'],
+['ray','ray','the straight line of all points that hit one pixel','like a single beam of light','starts at C','6.7','پرتو'],
+['pseudo-inverse','soo-do in-verse','a best-effort inverse for non-square matrices','like the closest undo when a perfect one is impossible','P⁺ = Pᵀ(PPᵀ)⁻¹','6.7','شبه‌وارون'],
+['svd','ess-vee-dee','a way to split any matrix into rotate–stretch–rotate','like breaking a move into turn, stretch, turn','M = U S Vᵀ','3.5','تجزیه مقادیر منفرد'],
+['singular value','singular value','one of the stretch amounts inside the SVD','like how much each direction is zoomed','entries of S','3.5','مقدار منفرد'],
+['rq decomposition','are-cue decomposition','splitting a matrix into upper-triangular × orthogonal','like separating zoom from turn','M = K R','7.3','تجزیه RQ'],
+['upper triangular','upper triangular','a matrix with zeros below the diagonal','like a staircase of numbers','K is upper triangular','7.3','بالا‌مثلثی'],
+['calibration','cal-i-bra-tion','finding the camera\'s numbers from known points','like tuning an instrument','solve for P','7.1','کالیبراسیون','calibration|calibrate'],
+['correspondence','cor-res-pon-dence','a known 3D point matched to its pixel','like matching a face to a name','Xᵢ ↔ xᵢ','7.1','تناظر','correspondence|correspondences'],
+['dlt','dee-el-tee','the method of stacking equations and solving with SVD','like gathering clues then solving all at once','Direct Linear Transform','7.2','تبدیل خطی مستقیم'],
+['over-determined','over-determined','more equations than unknowns, so we fit as best we can','like more clues than needed','12 equations, 11 unknowns','7.2','بیش‌معین'],
+['radial distortion','radial distortion','lens bending that curves straight lines near the edges','like a fish-eye bulge','L(r)=1+k₁r²','7.4','اعوجاج شعاعی'],
+['orthographic','or-tho-graph-ic','a flat projection that ignores depth','like an architect\'s straight-on drawing','rows (1000)(0100)(0001)','6.4','تصویر اُرتوگرافیک'],
+['weak perspective','weak perspective','perspective with one fixed depth for the whole object','like treating a far object as flat','÷ by a single λ','6.4','پرسپکتیو ضعیف'],
+['affine','af-fine','stretch, rotate, shear and shift — keeps lines straight','like reshaping a photo without curving it','x\' = Ax + t','2.5','آفین'],
+['shear','shear','a slant that pushes one axis sideways','like a deck of cards pushed over','rows (1 q 0)(0 1 0)','2.5','برش'],
+['field of view','field of view','the angle of the cone the camera can see','like how wide your eyes take in','77.3°','1.4','میدان دید'],
+];
+const GSYM=[
+['X, Y, Z','capital ex, why, zee','the real-world coordinates of a point','like a GPS position','X=(4,3,0)','1.2','مختصات جهانی'],
+['x, y','small ex, why','the point\'s place on the image (camera units)','like where it lands on film','x = fX/Z','1.2','مختصات تصویر'],
+['u, v','you, vee','the pixel column and row','like the seat column and row','(420, 290)','5.1','مختصات پیکسل'],
+['f','eff','focal length: hole-to-image distance','like projector-to-screen distance','f = 400','1.1','فاصله کانونی'],
+['Z_c','zee-see','the depth: third camera coordinate','like how far in front something is','Zc = 8','4.4','عمق'],
+['R','are','the rotation matrix (how the camera is turned)','like a compass heading','rows (0,1)(−1,0)','3.1','ماتریس دوران'],
+['t','tee','the translation vector (the pose shift)','like a sideways nudge','t = (0, 1)','4.1','بردار انتقال'],
+['C','see','the camera centre in the world','like the tripod\'s map pin','C = (0, 5, 0)','4.1','مرکز دوربین'],
+['C̃','see-tilde','the three plain numbers of the camera centre','like the pin without the extra 1','C̃ = (0,5,0)','6.5','مرکز دوربین'],
+['K','kay','the intrinsic matrix (lens + sensor)','like the camera\'s built-in settings','(f 0 cx)(0 f cy)(0 0 1)','5.2','ماتریس درونی'],
+['p_x, p_y','pee-ex, pee-why','the principal point (image centre)','like the bullseye of the sensor','(320, 240)','5.3','نقطه اصلی'],
+['c_x, c_y','see-ex, see-why','the principal point in pixels','like the middle pixel','(320, 240)','5.1','نقطه اصلی'],
+['α_x, α_y','al-fa ex, al-fa why','focal length in pixels, per axis','like separate zoom for width and height','αx = 400','5.3','فاصله کانونی پیکسلی'],
+['s','ess','skew: the slant term in K','like how italic the pixels are','s = 0','5.3','اریبی'],
+['m_x, m_y','em-ex, em-why','pixels per unit distance','like dots-per-inch','mx pixels/mm','5.3','پیکسل بر واحد'],
+['P','pee','the projection matrix, the whole camera','like one button that does everything','P = K[R|t]','6.1','ماتریس تصویر'],
+['M','em','the left 3×3 block of P','like the turning-and-zoom part of P','M = KR','6.5','بلوک M'],
+['p₄','pee-four','the last column of P','like the image of the world origin','(−1600,−1200,−5)','6.5','ستون چهارم'],
+['[R | t]','are bar tee','rotation and translation side by side','like heading + position together','3×4 pose block','4.2','ماتریس بیرونی'],
+['[I | 0]','eye bar zero','keep the point, drop the extra 1','like a plain pass-through','(X,Y,Z,1)→(X,Y,Z)','2.4','آی بار صفر'],
+['λ','lambda','the scale number you divide by; here it is the depth','like the zoom level to undo','λ = −5','6.2','لاندا'],
+['θ','theta','an angle, usually a turn','like degrees on a protractor','θ = 90°','3.2','تتا'],
+['Rᵀ','are-transpose','R flipped (rows become columns); it undoes R','like pressing rewind on the turn','C = −Rᵀt','4.3','ترانهاده R'],
+['R⁻¹','are-inverse','the matrix that undoes R (equals Rᵀ here)','like the reverse gear','R⁻¹ = Rᵀ','3.4','وارون R'],
+['det','det, determinant','the flip/scale number of a matrix','like a mirror flag','det R = +1','3.4','دترمینان'],
+['~ (tilde)','tilde','a squiggle meaning "just the plain numbers" or "proportional"','like a shorthand mark','C̃','6.5','موج‌دار'],
+['^ (hat)','hat','a mark meaning "corrected" or "estimated"','like a fix-it tag','x̂','7.4','هت'],
+['| (bar)','bar','a divider that joins two blocks side by side','like a wall between two rooms','[R | t]','4.2','خط جداکننده'],
+['σ (sigma)','sig-ma','a singular value (a stretch amount)','like a zoom factor','entries of S','3.5','سیگما'],
+['· (dot)','times, dot','multiply (dot product or scalar times)','like the × you already know','R · X','3.1','نقطه ضرب'],
+['× (cross)','cross, times','cross product of two 3-vectors','like making the shared pole of two walls','p × q','2.3','ضرب خارجی'],
+['∝','proportional to','"grows in step with", same up to a constant','like "doubles when the other doubles"','size ∝ 1/Z','1.3','متناسب با'],
+];
+const GLOSSARY={};
+GTERMS.forEach(a=>{const[term,say,plain,like,ex,lesson,fa,al]=a;GLOSSARY[term]={term,say,plain,like,ex,lesson,fa,word:true,aliases:(al?al.split('|'):[term])};});
+GSYM.forEach(a=>{const[term,say,plain,like,ex,lesson,fa]=a;GLOSSARY[term]={term,say,plain,like,ex,lesson,fa,symbol:true};});
+
+/* ========== MEANING BEFORE MATH (per lesson) ========== */
+/* {q: what question, why: why we need it, bad: what goes wrong without it, simple: everyday story, say: formula in English} */
+const MEANING={
+'1.1':{q:'What are the basic parts of a camera?',why:'Every later idea is built on these five words, so we name them first.',bad:'Without the names, every formula would use words you have not met.',simple:'A camera is a dark box with a tiny hole. Light comes through the hole and paints a picture on the back wall. We just give names to the hole, the wall, and the distance between them.',say:''},
+'1.2':{q:'How big does something look in the photo?',why:'It is the master rule that links the real world to the picture.',bad:'Without it you could not predict where anything lands in the image.',simple:'A near tree makes a big picture; a far tree makes a small one. The rule is just: picture size = real size, shrunk by how far away it is.',say:'the image height equals the focal length times the real height, divided by how far away it is'},
+'1.3':{q:'What does a camera keep, and what does it throw away?',why:'Knowing its honest and dishonest habits stops silly mistakes.',bad:'You might trust depths or angles the camera never really kept.',simple:'In a photo, far things shrink, straight lines stay straight, but parallel lines lean together and distance is lost.',say:''},
+'1.4':{q:'How much of the scene fits in the photo?',why:'It tells you whether to pick a wide or a zoom lens.',bad:'You could choose a lens that cuts off what you wanted to show.',simple:'A zoom lens sees a narrow slice; a wide lens sees a lot. This is just the angle of what the camera takes in.',say:'the field of view equals two times the angle whose tangent is half the sensor width divided by the focal length'},
+'2.1':{q:'How can we make moving and zooming into simple multiplication?',why:'Adding one number to each point unlocks matrix tricks later.',bad:'Without it, perspective needs an awkward division no matrix can do.',simple:'We add a 1 to the end of every point. Multiplying all the numbers by the same amount still means the same point; divide by the last to get back.',say:'to return to normal, divide every number by the last number'},
+'2.2':{q:'What does a last number of zero mean?',why:'It is how a photo shows parallel lines meeting at the horizon.',bad:'You would have no way to handle directions or vanishing points.',simple:'If the last number is zero you cannot divide, so it is not a place — it is a direction, a point infinitely far away.',say:''},
+'2.3':{q:'How do we join points into lines and find where lines cross?',why:'One simple operation does both jobs.',bad:'Finding lines and intersections would be slow and clumsy.',simple:'A line is also three numbers. The cross product joins two points into a line, and joins two lines into their crossing point.',say:'the line through two points is their cross product; a point lies on a line when their dot product is zero'},
+'2.4':{q:'Why bother with the extra 1 at all?',why:'It turns the whole pinhole camera into one clean matrix.',bad:'Translation and the perspective divide would resist matrices.',simple:'The extra 1 lets a matrix do the camera\'s job, and the final divide quietly does the perspective for free.',say:'the scale you divide by is the depth Z'},
+'2.5':{q:'Do stretching and shifting keep lines straight?',why:'It reassures us that these everyday moves never curve a line.',bad:'You might fear simple transforms bend your shapes.',simple:'If you rotate, stretch, shear and slide a straight line, it stays straight. No curve can appear.',say:'after the map, a straight line is still a straight line'},
+'3.1':{q:'How does a point look from the camera\'s side?',why:'The camera sees the world turned into its own point of view.',bad:'You could not express any point in camera coordinates.',simple:'The rotation table holds the camera\'s own arrows. To find a point for the camera, ask each arrow how many steps along it the point is.',say:'the point for the camera equals the rotation times the point: dot each row with the point'},
+'3.2':{q:'How do we write the rotation from a turn angle?',why:'And it warns us about the look-alike transpose matrix.',bad:'You could turn the point when you meant to turn the camera.',simple:'Turn the camera by an angle and its arrows follow cos and sin. Turning the point uses the flipped (transpose) version.',say:'the camera\'s rows are cosine-sine and minus-sine-cosine'},
+'3.3':{q:'Which way is the 3D camera looking?',why:'Row 3 of R is the single most useful fact in the chapter.',bad:'You could not tell where the camera points in 3D.',simple:'In 3D the rotation has three arrows: right, down, and forward. The forward one — row three — is where the camera looks.',say:'row three of R is the viewing direction'},
+'3.4':{q:'Is this table a real rotation, or a fake one?',why:'Only real rotations turn without stretching or flipping.',bad:'A fake rotation would quietly distort your scene.',simple:'A real rotation has rows of length one that meet at right angles. If a row is too long or not square, it is not a rotation.',say:'R transpose times R equals the identity, and the determinant is plus one'},
+'3.5':{q:'How do we repair a rotation that drifted?',why:'Measured rotations are never perfect and need snapping back.',bad:'A slightly-off rotation adds small errors everywhere.',simple:'Split the broken turn into turn-stretch-turn, throw away the stretch, and glue the two turns back. That is the nearest true rotation.',say:'take R equals U S V-transpose, drop S, keep U V-transpose'},
+'4.1':{q:'What if the camera is not at the origin?',why:'Real cameras stand somewhere, so we must move them.',bad:'You could only handle cameras stuck at the origin.',simple:'The camera always feels it is at home. So we slide the world so the camera sits at zero, then turn. The leftover slide is t.',say:'the point for the camera is R times (point minus centre), which is R times point plus t, where t is minus R times C'},
+'4.2':{q:'How do we write the camera\'s pose in one block?',why:'It bundles where the camera is and how it is aimed.',bad:'Pose would be scattered across separate pieces.',simple:'Put the turning table and the sliding numbers side by side. Three numbers for the turn, three for the place: six in all.',say:'[R | t] is three rows and four columns, with six degrees of freedom'},
+'4.3':{q:'Given R and t, where is the camera?',why:'We often need to recover the camera position.',bad:'You could go forward but never check or reverse the pose.',simple:'Run the move backwards: undo the turn with the flipped table and change the sign, and you get the camera\'s place again.',say:'the centre C equals minus R-transpose times t'},
+'4.4':{q:'Can the camera actually see this point?',why:'The sign of the depth decides front from behind.',bad:'You might trust a pixel for a point behind the lens.',simple:'The third camera number is the depth. Positive means in front and visible; negative means behind, so the pixel is a ghost.',say:'if the depth Zc is greater than zero the point is in front; if less than zero it is behind'},
+'5.1':{q:'How do camera units become pixels?',why:'The sensor counts in pixels from a corner, not the centre.',bad:'Your points would land on the wrong pixels.',simple:'Like Celsius to Fahrenheit: multiply then add. Divide by depth, multiply by f, then slide to the image centre.',say:'the pixel column equals f times X-over-Z plus the centre; the pixel row equals f times Y-over-Z plus the centre'},
+'5.2':{q:'Can we pack those three moves into one matrix?',why:'K does divide-scale-shift in a single tidy step.',bad:'You would repeat the three steps by hand every time.',simple:'K is a neat box: its corners hold the zoom and the centre. Multiply by it and divide by the third number.',say:'K has rows f-zero-cx, zero-f-cy, zero-zero-one'},
+'5.3':{q:'What if the pixels are not perfect squares?',why:'Real sensors need separate scales and sometimes a slant.',bad:'You would wrongly assume width and height scale the same.',simple:'Sometimes pixels are taller than wide, so x and y get different zooms, and a rare slant term handles non-square pixels.',say:'K has alpha-x, skew, x-zero on top, then zero, alpha-y, y-zero'},
+'5.4':{q:'What changes when the camera moves versus zooms?',why:'It keeps the two halves of the camera from getting mixed up.',bad:'You might change the wrong half and get confused.',simple:'Moving the camera changes where it stands (extrinsics). Zooming changes the lens (intrinsics). They are different halves.',say:'the full camera is K times the pose block'},
+'5.5':{q:'Where is pixel (0,0) and which way is down?',why:'Image axes are not like a maths graph.',bad:'You would flip the picture upside down by accident.',simple:'The top-left corner is (0,0), and v grows downward. So a bigger v means lower in the picture.',say:''},
+'6.0':{q:'Why do we want one camera matrix?',why:'It folds turn, move and to-pixels into a single step.',bad:'Doing four steps by hand is slow and easy to slip on.',simple:'Instead of four separate steps for every point, we bundle them into one matrix P. Multiply once, divide once.',say:'P equals K times the pose block'},
+'6.1':{q:'How do we actually build P?',why:'Each row of K mixes the rows of the pose block.',bad:'You could not form the single camera matrix.',simple:'Build P row by row: each row of K says how much of each pose row to take, then add them up.',say:'P equals K times [R | t], a three-by-four matrix'},
+'6.2':{q:'How do we project a point with P?',why:'It is one multiply and one divide.',bad:'You might forget the final divide and stop too early.',simple:'Glue a 1 on the point, multiply by P, and divide the first two numbers by the third to get the pixel.',say:'lambda times (u, v, 1) equals P times (X, Y, Z, 1)'},
+'6.3':{q:'Do the long way and the matrix way agree?',why:'Matching answers is a built-in error check.',bad:'A mismatch would mean a hidden arithmetic slip.',simple:'Projecting step by step and projecting with P give the very same pixel, because P is just the steps folded together.',say:'K times the camera point, divided by depth, equals P times the world point, divided by depth'},
+'6.4':{q:'How much information is inside P?',why:'This count sets the minimum points for calibration.',bad:'You could not reason about how much data P holds.',simple:'P has twelve numbers, but one is just overall scale, leaving eleven real ones: five lens, three turn, three move.',say:'the degrees of freedom of P are eleven, which is five plus three plus three'},
+'6.5':{q:'Where is the camera, read from P?',why:'The centre is the one point P sends to zero.',bad:'You could not recover the camera position from P alone.',simple:'Feed the camera\'s own position into P and you get all zeros, because the camera cannot photograph itself.',say:'P times (C, 1) equals zero'},
+'6.6':{q:'Where do parallel lines meet in the photo?',why:'A direction\'s vanishing point comes straight from K, R.',bad:'You could not locate vanishing points.',simple:'A direction has no position, so only K and R act on it. The result, after dividing, is the vanishing point.',say:'the vanishing point equals K times R times the direction d'},
+'6.7':{q:'What does one pixel tell us in 3D?',why:'It gives a ray, which is why depth is lost.',bad:'You might think a pixel fixes a single 3D point.',simple:'A pixel does not give a point but a whole ray from the camera. Every point along it shares the same pixel.',say:'the ray direction is R-transpose times K-inverse times (u, v, 1)'},
+'7.1':{q:'Where do K, R and t come from?',why:'We measure them by photographing known points.',bad:'You would have no way to get real camera numbers.',simple:'Photograph a board whose shape you know, note where each corner lands, and work out the camera from those matches.',say:''},
+'7.2':{q:'How many points do we need, and how do we solve?',why:'Each point gives two equations; P has eleven unknowns.',bad:'Too few points and the camera cannot be found.',simple:'Every matched point gives two clues. P needs eleven, so you need at least six points. Then SVD solves them all.',say:'stack the equations as A times p equals zero and take the smallest singular vector'},
+'7.3':{q:'How do we split P back into K, R and t?',why:'We separate the lens part from the turning part.',bad:'You would have P but not its meaning.',simple:'The left block splits into a zoom part and a turn part; the centre comes from the null vector.',say:'the left block M equals K times R, by RQ decomposition'},
+'7.4':{q:'Why do straight lines curve near the photo edges?',why:'Real lenses bend light; the pinhole P does not model it.',bad:'You would blame the maths for the lens\'s curving.',simple:'Real lenses bulge the picture near the edges. We measure that bend and straighten the image before using the pinhole rule.',say:'the correction scales each point by L of r, which grows with the radius'},
+'8.1':{q:'Can I say the ideas in my own words?',why:'Exams give marks for clear reasoning, not just numbers.',bad:'You could do the sums but lose the explaining marks.',simple:'Practise answering the "why" questions in plain words, then compare with a model answer.',say:''},
+'8.2':{q:'Am I ready for the real exam?',why:'A timed rehearsal shows where to focus.',bad:'You would meet exam pressure for the first time on the day.',simple:'Sit two full exam-style questions against a timer, then mark yourself with full solutions.',say:''},
+'8.3':{q:'What should I revise the night before?',why:'One sheet gathers every formula and your weak spots.',bad:'You would hunt through the whole app under pressure.',simple:'One page with every formula, the common mistakes, and the questions you got wrong — screenshot and keep it.',say:''},
+};
+
 /* ========== lookup & progress ========== */
 const L_BY_ID={};LESSONS.forEach(l=>L_BY_ID[l.id]=l);
 const lessonsOf=m=>LESSONS.filter(l=>l.mod===m);
@@ -1598,11 +1778,144 @@ function moduleComplete(m){return lessonsOf(m).every(l=>isDone(l.id)||l.special)
 function matchScale(got,ans){let s=null;for(let i=0;i<ans.length;i++){if(Math.abs(ans[i])>1e-9){s=got[i]/ans[i];break;}}
   if(s==null||!isFinite(s)||Math.abs(s)<1e-9)return false;return ans.every((a,i)=>Math.abs(got[i]-s*a)<=0.03+Math.abs(s*a)*0.03);}
 
+/* ========== beginner-support engine ========== */
+if(!Array.isArray(S.hard))S.hard=[];
+const addHard=k=>{if(GLOSSARY[k]&&!S.hard.includes(k)){S.hard.push(k);save();}};
+const removeHard=k=>{S.hard=S.hard.filter(x=>x!==k);save();};
+const _pairs=[];Object.keys(GLOSSARY).forEach(k=>{const g=GLOSSARY[k];if(g.symbol)return;(g.aliases||[g.term]).forEach(a=>_pairs.push([a,k]));});
+_pairs.sort((a,b)=>b[0].length-a[0].length);
+const ALIAS2KEY={};_pairs.forEach(([a,k])=>{if(!(a.toLowerCase() in ALIAS2KEY))ALIAS2KEY[a.toLowerCase()]=k;});
+const _esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const TERM_SRC='(?:'+_pairs.map(([a])=>_esc(a)).join('|')+')';
+function annotate(root){
+  if(!root)return;let re;try{re=new RegExp('\\b'+TERM_SRC+'\\b','gi');}catch(e){return;}
+  const skip=n=>{let p=n.parentNode;while(p&&p!==root.parentNode){if(p.nodeType===1){const c=p.classList;
+    if(c&&(c.contains('term')||c.contains('mx')||c.contains('work')||c.contains('wordchip')))return true;
+    if(p.dataset&&p.dataset.g)return true;
+    if(p.tagName==='BUTTON'||p.tagName==='INPUT'||p.tagName==='TEXTAREA')return true;
+    if(p.closest&&p.closest('svg'))return true;}p=p.parentNode;}return false;};
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(n){
+    return (n.nodeValue&&n.nodeValue.trim()&&!skip(n))?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;}});
+  const nodes=[];let nn;while(nn=walker.nextNode())nodes.push(nn);
+  nodes.forEach(node=>{const text=node.nodeValue;re.lastIndex=0;let m,last=0,frag=null;
+    while((m=re.exec(text))){const key=ALIAS2KEY[m[0].toLowerCase()];if(!key)continue;
+      if(!frag)frag=document.createDocumentFragment();
+      if(m.index>last)frag.appendChild(document.createTextNode(text.slice(last,m.index)));
+      const sp=document.createElement('span');sp.className='term';sp.dataset.g=key;sp.tabIndex=0;sp.setAttribute('role','button');sp.textContent=m[0];frag.appendChild(sp);last=m.index+m[0].length;}
+    if(frag){if(last<text.length)frag.appendChild(document.createTextNode(text.slice(last)));node.parentNode.replaceChild(frag,node);}});
+}
+function wordsIn(text,max){const plain=String(text).replace(/<[^>]+>/g,' ');let re;try{re=new RegExp('\\b'+TERM_SRC+'\\b','gi');}catch(e){return[];}
+  const seen=[];let m;while((m=re.exec(plain))){const k=ALIAS2KEY[m[0].toLowerCase()];if(k&&!seen.includes(k))seen.push(k);if(seen.length>=max)break;}return seen;}
+
+const PICS={
+ 'pinhole':`<svg viewBox="0 0 200 90"><rect x="20" y="20" width="110" height="50" fill="none" stroke="var(--muted)"/><circle cx="130" cy="45" r="3" fill="var(--fg)"/><line x1="60" y1="25" x2="130" y2="45" stroke="var(--pt)" stroke-dasharray="3 2"/><line x1="60" y1="65" x2="130" y2="45" stroke="var(--pt)" stroke-dasharray="3 2"/><line x1="150" y1="25" x2="150" y2="65" stroke="var(--plane)" stroke-width="2"/><text x="130" y="82" font-size="9" text-anchor="middle" fill="var(--muted)">pinhole</text></svg>`,
+ 'focal length':`<svg viewBox="0 0 200 70"><circle cx="40" cy="35" r="3" fill="var(--fg)"/><line x1="40" y1="15" x2="40" y2="55" stroke="var(--muted)"/><line x1="150" y1="15" x2="150" y2="55" stroke="var(--plane)" stroke-width="2"/><line x1="40" y1="35" x2="150" y2="35" stroke="var(--zb)" stroke-dasharray="4 3"/><text x="95" y="30" font-size="10" text-anchor="middle" fill="var(--zb)">f</text></svg>`,
+ 'depth':`<svg viewBox="0 0 200 70"><circle cx="30" cy="35" r="6" fill="var(--fg)"/><text x="30" y="58" font-size="9" text-anchor="middle" fill="var(--muted)">camera</text><circle cx="160" cy="35" r="7" fill="var(--pt)"/><line x1="36" y1="35" x2="153" y2="35" stroke="var(--zb)" stroke-dasharray="4 3"/><text x="95" y="28" font-size="10" text-anchor="middle" fill="var(--zb)">Zc</text></svg>`,
+ 'pixel':`<svg viewBox="0 0 120 90"><rect x="10" y="10" width="100" height="70" fill="none" stroke="var(--plane)"/><rect x="40" y="30" width="14" height="14" fill="var(--pt)"/></svg>`,
+ 'vanishing point':`<svg viewBox="0 0 200 90"><line x1="20" y1="80" x2="120" y2="25" stroke="var(--fg)"/><line x1="180" y1="80" x2="120" y2="25" stroke="var(--fg)"/><circle cx="120" cy="25" r="5" fill="var(--pt)"/></svg>`,
+ 'rotation matrix':`<svg viewBox="0 0 120 100"><line x1="40" y1="60" x2="90" y2="60" stroke="var(--xr)" stroke-width="3"/><line x1="40" y1="60" x2="40" y2="20" stroke="var(--zb)" stroke-width="3"/><text x="92" y="63" font-size="9" fill="var(--xr)">right</text><text x="44" y="22" font-size="9" fill="var(--zb)">fwd</text></svg>`,
+ 'translation':`<svg viewBox="0 0 160 60"><circle cx="30" cy="30" r="6" fill="var(--muted)"/><circle cx="120" cy="30" r="6" fill="var(--pt)"/><line x1="38" y1="30" x2="110" y2="30" stroke="var(--pt)" stroke-width="2" marker-end="url(#ta)"/><defs><marker id="ta" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L6,3.5 L0,7 Z" fill="var(--pt)"/></marker></defs></svg>`,
+ 'principal point':`<svg viewBox="0 0 120 90"><rect x="10" y="10" width="100" height="70" fill="none" stroke="var(--plane)"/><circle cx="60" cy="45" r="4" fill="var(--yg)"/></svg>`,
+ 'vanishing point ':''
+};
+function openCard(key){
+  const g=GLOSSARY[key];if(!g)return;
+  const ov=el('div','overlay');const sheet=el('div','gcard');
+  const pic=PICS[key]||'';
+  sheet.innerHTML=`<button class="close" aria-label="Close">✕</button>
+    <div class="gterm">${g.term}${g.symbol?' <span style="font-size:.7rem;color:var(--muted)">(symbol)</span>':''}</div>
+    <div class="gsay">🔊 say it: “${g.say}”</div>
+    ${g.fa?`<div class="gfa">${g.fa}</div>`:''}
+    ${pic?`<div class="gpic">${pic}</div>`:''}
+    <div class="r"><b>Means:</b> ${g.plain}.</div>
+    <div class="r"><b>Like:</b> ${g.like}.</div>
+    <div class="r"><b>Example:</b> ${g.ex}</div>
+    <div class="toolrow">
+      <button class="minibtn" data-hard>${S.hard.includes(key)?'✓ in my hard words':'⭐ Add to my hard words'}</button>
+      ${g.lesson&&L_BY_ID[g.lesson]?`<button class="minibtn" data-goto>Open lesson ${g.lesson} →</button>`:''}</div>`;
+  ov.appendChild(sheet);document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  ov.addEventListener('click',e=>{if(e.target===ov)close();});
+  sheet.querySelector('.close').onclick=close;
+  const hb=sheet.querySelector('[data-hard]');hb.onclick=()=>{if(S.hard.includes(key)){removeHard(key);hb.textContent='⭐ Add to my hard words';}else{addHard(key);hb.textContent='✓ in my hard words';}};
+  const gb=sheet.querySelector('[data-goto]');if(gb)gb.onclick=()=>{close();go({name:'lesson',id:g.lesson});};
+}
+function openIdk(l){
+  const ov=el('div','overlay');const sheet=el('div','gcard');
+  sheet.innerHTML=`<button class="close" aria-label="Close">✕</button><div class="gterm">🙋 What is unclear?</div>
+    <div class="idkpanel">
+      <div class="opt"><button class="minibtn" data-k="word">❓ A word</button></div>
+      <div class="opt"><button class="minibtn" data-k="symbol">🔣 A symbol</button></div>
+      <div class="opt"><button class="minibtn" data-k="step">🧮 A step in the calculation</button></div>
+      <div class="opt"><button class="minibtn" data-k="why">🎯 Why we are doing this</button></div>
+    </div><div id="idkout" class="r" style="margin-top:10px"></div>`;
+  ov.appendChild(sheet);document.body.appendChild(ov);
+  const close=()=>ov.remove();ov.addEventListener('click',e=>{if(e.target===ov)close();});sheet.querySelector('.close').onclick=close;
+  const out=sheet.querySelector('#idkout');
+  sheet.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k,M=MEANING[l.id]||{};
+    if(k==='word'||k==='symbol'){out.innerHTML=`Tap any lightly <b>underlined</b> word on the lesson to open its plain-words card, or search the Dictionary. `;const g=el('button','minibtn','📖 Open Dictionary');g.onclick=()=>{close();go({name:'dict'});};out.appendChild(g);}
+    else if(k==='step'){out.innerHTML=`Scroll to <b>Guided practice</b> below — it breaks the calculation into one tiny step at a time, each with three hints: a gentle nudge, then the first line of working, then the full solution.`;}
+    else{out.innerHTML=`<b>Why we do this:</b> ${M.why||''}<br><b>In plain words:</b> ${M.simple||''}`;annotate(out);}});
+}
+function meaningHeaderEl(l){
+  const M=MEANING[l.id]||{};const words=wordsIn(l.story,6);const i=LESSONS.indexOf(l);const prev=i>0?LESSONS[i-1]:null;
+  const box=el('div','meaningbox');
+  box.innerHTML=`<h4>❓ What question does this answer?</h4><div class="qa">${M.q||'—'}</div>
+    <h4>🎯 Why do we need it?</h4><div class="qa">${M.why||'—'}</div>
+    <h4>⚠️ What would go wrong without it?</h4><div class="qa">${M.bad||'—'}</div>
+    <h4>🔤 Words you need for this lesson</h4>
+    <div class="wordchips">${words.length?words.map(k=>`<span class="wordchip" data-g="${k}"><b>${GLOSSARY[k].term}</b></span>`).join(''):'<span class="qa">—</span>'}</div>
+    <h4>✅ What you already know that helps</h4>
+    <div class="qa">${prev?`You just did <b>Lesson ${prev.n} — ${prev.title}</b>; this builds gently on it.`:'Just everyday seeing — no maths needed yet.'}</div>`;
+  return box;
+}
+function renderMap(c){
+  c.appendChild(el('h1','lesson-title','The whole chapter in one picture'));
+  c.appendChild(el('div','lesson-sub','Follow one real point all the way from the world to a pixel. Tap any box to open the lesson that teaches it.'));
+  const steps=[['World point','(2, 0, 10)','1.2','var(--world)'],['Turn + move\\n[R | t]','pose','4.1','var(--zb)'],['Camera view','(2, −10, −5)','3.3','var(--xr)'],['÷ depth','÷ (−5)','6.2','var(--pt)'],['To pixels\\nK','K','5.2','var(--yg)'],['Pixel','(160, 1040)','4.4','var(--accent)']];
+  const box=el('div','mapbox');
+  let g='';steps.forEach((st,i)=>{const x=20+i*125;
+    g+=`<g data-lesson="${st[2]}" style="cursor:pointer"><rect x="${x}" y="70" width="104" height="64" rx="11" fill="${st[3]}" opacity="0.16" stroke="${st[3]}"/>`;
+    st[0].split('\\n').forEach((ln,j)=>g+=`<text x="${x+52}" y="${90+j*15}" font-size="12" font-weight="700" text-anchor="middle" fill="var(--fg)">${ln}</text>`);
+    g+=`<text x="${x+52}" y="${st[0].includes('\\n')?124:106}" font-size="11" text-anchor="middle" fill="var(--muted)">${st[1]}</text></g>`;
+    if(i<steps.length-1)g+=`<line x1="${x+104}" y1="102" x2="${x+125}" y2="102" stroke="var(--muted)" stroke-width="2" marker-end="url(#ma)"/>`;});
+  box.innerHTML=`<svg viewBox="0 0 780 200"><defs><marker id="ma" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L7,4 L0,8 Z" fill="var(--muted)"/></marker></defs>
+    <g data-lesson="6.1" style="cursor:pointer"><rect x="150" y="18" width="480" height="30" rx="8" fill="var(--accent)" opacity="0.12" stroke="var(--accent)"/><text x="390" y="38" font-size="13" font-weight="700" text-anchor="middle" fill="var(--accent)">P = K[R | t] does the middle steps all at once — tap to learn how</text></g>${g}</svg>`;
+  c.appendChild(box);
+  $$('[data-lesson]',box).forEach(gg=>gg.onclick=()=>go({name:'lesson',id:gg.dataset.lesson}));
+  c.appendChild(el('div','',`<p class="plain" style="margin-top:12px">Here the depth came out <b>negative</b> (−5), so this particular point is actually behind the camera — a good reminder to always check the sign of the depth.</p>`));
+}
+function renderDict(c){
+  c.appendChild(el('h1','lesson-title','Dictionary'));
+  c.appendChild(el('div','lesson-sub','Every word and symbol, with a plain meaning, an everyday comparison, an example, how to say it, and the Persian word. You can also tap any lightly underlined word anywhere in a lesson.'));
+  const sbar=el('div','searchbar');sbar.innerHTML=`<input id="dictSearch" placeholder="Search a word or symbol…"><div class="toolrow"><button class="minibtn" id="dBy">Group: A–Z</button></div>`;c.appendChild(sbar);
+  const list=el('div');c.appendChild(list);let byLesson=false;
+  function card(k){const g=GLOSSARY[k];const d=el('div','note');
+    d.innerHTML=`<h4>${g.term}${g.symbol?' · symbol':''}</h4><div class="gsay">🔊 ${g.say}</div>${g.fa?`<div class="gfa">${g.fa}</div>`:''}
+      <div class="meaning"><b>Means:</b> ${g.plain}. <b>Like</b> ${g.like}.</div><div class="ex"><b>e.g.</b> ${g.ex}</div>
+      <div class="toolrow"><button class="minibtn" data-hard>${S.hard.includes(k)?'✓ in my hard words':'⭐ hard word'}</button>${g.lesson&&L_BY_ID[g.lesson]?`<button class="minibtn" data-goto>Lesson ${g.lesson} →</button>`:''}</div>`;
+    d.querySelector('[data-hard]').onclick=function(){if(S.hard.includes(k)){removeHard(k);this.textContent='⭐ hard word';}else{addHard(k);this.textContent='✓ in my hard words';}};
+    const gb=d.querySelector('[data-goto]');if(gb)gb.onclick=()=>go({name:'lesson',id:g.lesson});return d;}
+  function draw(q){q=(q||'').toLowerCase().trim();list.innerHTML='';
+    const keys=Object.keys(GLOSSARY).filter(k=>{const g=GLOSSARY[k];return !q||(g.term+' '+g.plain+' '+g.like+' '+g.ex+' '+(g.fa||'')).toLowerCase().includes(q);});
+    if(S.hard.length){const hk=S.hard.filter(k=>keys.includes(k));if(hk.length){list.appendChild(el('div','dictgroup','⭐ My hard words'));const hl=el('div','hardlist');hk.forEach(k=>hl.appendChild(card(k)));list.appendChild(hl);}}
+    if(byLesson){const groups={};keys.forEach(k=>{const ls=GLOSSARY[k].lesson||'zz';(groups[ls]=groups[ls]||[]).push(k);});
+      [...LESSONS.map(l=>l.id),'zz'].forEach(id=>{if(!groups[id])return;const l=L_BY_ID[id];list.appendChild(el('div','dictgroup',l?`Lesson ${l.n} — ${l.title}`:'Other'));groups[id].forEach(k=>list.appendChild(card(k)));});}
+    else{const words=keys.filter(k=>GLOSSARY[k].word).sort((a,b)=>GLOSSARY[a].term.toLowerCase().localeCompare(GLOSSARY[b].term.toLowerCase()));const syms=keys.filter(k=>GLOSSARY[k].symbol);
+      if(words.length){list.appendChild(el('div','dictgroup','Words A–Z'));words.forEach(k=>list.appendChild(card(k)));}
+      if(syms.length){list.appendChild(el('div','dictgroup','Symbols'));syms.forEach(k=>list.appendChild(card(k)));}}
+    if(!list.children.length)list.innerHTML='<p class="plain">Nothing matches that search.</p>';}
+  draw('');$('#dictSearch',c).oninput=e=>draw(e.target.value);
+  $('#dBy',c).onclick=function(){byLesson=!byLesson;this.textContent='Group: '+(byLesson?'by lesson':'A–Z');draw($('#dictSearch',c).value);};
+}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-g]');if(t&&t.dataset.g&&GLOSSARY[t.dataset.g]){e.preventDefault();openCard(t.dataset.g);}});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&document.activeElement&&document.activeElement.dataset&&document.activeElement.dataset.g){e.preventDefault();openCard(document.activeElement.dataset.g);}});
+
 /* ========== sidebar ========== */
 function buildSidebar(){
   const sb=$('#sidebar');sb.innerHTML='';
   const top=el('div','navtop');
-  top.innerHTML=`<button class="chip" data-go="home">🏠 Home</button><button class="chip" data-go="notes">📓 Notes</button>`;
+  top.innerHTML=`<button class="chip" data-go="home">🏠 Home</button><button class="chip" data-go="map">🗺️ Map</button><button class="chip" data-go="dict">📖 Dictionary</button><button class="chip" data-go="notes">📓 Notes</button>`;
   sb.appendChild(top);
   MODULES.forEach(m=>{
     sb.appendChild(el('h4',null,`${m.icon} Module ${m.n} · ${m.title}`));
@@ -1628,6 +1941,8 @@ $('#starsChip').onclick=()=>go({name:'home'});
 function render(){buildSidebar();const c=$('#content');c.innerHTML='';
   if(view.name==='home')renderHome(c);
   else if(view.name==='notes')renderNotes(c);
+  else if(view.name==='dict')renderDict(c);
+  else if(view.name==='map')renderMap(c);
   else if(view.name==='lesson')renderLesson(c,L_BY_ID[view.id]);
 }
 
@@ -1675,16 +1990,40 @@ function renderLesson(c,l){
   if(l.special==='exam'){renderMockExam(c);return;}
   if(l.special==='summary'){renderSummary(c);return;}
 
-  // 1 diagram
+  // meaning BEFORE math + helper buttons
+  c.appendChild(meaningHeaderEl(l));
+  const tools=el('div','toolrow');
+  const bMap=el('button','minibtn','🗺️ See the whole map');bMap.onclick=()=>go({name:'map'});
+  const bIdk=el('button','minibtn','🙋 I don’t understand this');bIdk.onclick=()=>openIdk(l);
+  const bDict=el('button','minibtn','📖 Dictionary');bDict.onclick=()=>go({name:'dict'});
+  tools.append(bMap,bIdk,bDict);c.appendChild(tools);
+
+  // diagram
   if(l.diagram&&DIAGRAMS[l.diagram]){
     const s=el('div','sec');s.innerHTML=`<h3><span class="ic">🖐️</span> Touch the picture</h3>`;
     const box=el('div','diagram');s.appendChild(box);c.appendChild(s);DIAGRAMS[l.diagram](box);
   }
-  c.appendChild(section('📖 The plain story',`<div class="story">${l.story}</div>`));
-  if(l.diagram)c.insertBefore(el('div','',''),null);
+  // story + "say it simpler"
+  const storySec=section('📖 The plain story',`<div class="toolrow"><button class="minibtn" data-simpler>🔁 Say it simpler</button></div><div class="story"></div>`);
+  const storyBody=$('.story',storySec);storyBody.innerHTML=l.story;
+  let lvl=0;$('[data-simpler]',storySec).onclick=function(){const M=MEANING[l.id]||{};lvl=(lvl+1)%3;
+    if(lvl===1){storyBody.innerHTML=M.simple||l.story;this.textContent='🖼️ Now show the picture';}
+    else if(lvl===2){storyBody.innerHTML=M.simple||l.story;this.textContent='↩ Back to normal';const d=$('.diagram',c);if(d)d.scrollIntoView({behavior:'smooth',block:'center'});}
+    else{storyBody.innerHTML=l.story;this.textContent='🔁 Say it simpler';}
+    annotate(storyBody);};
+  c.appendChild(storySec);
+
   c.appendChild(section('✏️ Worked example',`${REMIND}<div style="height:8px"></div>${l.worked}`));
-  c.appendChild(section('📐 The formula',`<div style="overflow-x:auto">${l.formula.grid}</div>
-    <table class="symtab" style="margin-top:12px">${l.formula.symbols.map(s=>`<tr><td>${s[0]}</td><td>${s[1]}</td></tr>`).join('')}</table>`));
+
+  // formula + "read it in words"
+  const fSec=section('📐 The formula',`<div style="overflow-x:auto">${l.formula.grid}</div>
+    <p class="plain" style="margin:6px 0 2px">What each part does — tap any word:</p>
+    <table class="symtab" style="margin-top:4px">${l.formula.symbols.map(s=>`<tr><td>${s[0]}</td><td>${s[1]}</td></tr>`).join('')}</table>`);
+  const Mf=MEANING[l.id]||{};
+  if(Mf.say){const fb=el('div','toolrow');const b=el('button','minibtn','🔤 Read this formula in words');const sayb=el('div','saybox');sayb.hidden=true;sayb.innerHTML=`“${Mf.say}.”`;
+    b.onclick=()=>{sayb.hidden=!sayb.hidden;};fb.appendChild(b);fSec.appendChild(fb);fSec.appendChild(sayb);}
+  c.appendChild(fSec);
+
   c.appendChild(section('🧠 Why it is true',`<ol class="why">${l.why.map(w=>`<li>${w}</li>`).join('')}</ol>`));
   const mw=el('div','sec');mw.innerHTML=`<div class="box warn"><h3>⚠️ Common mistakes</h3><ul>${l.mistakes.map(m=>`<li>${m}</li>`).join('')}</ul></div>`;c.appendChild(mw);
   const ew=el('div','sec');ew.innerHTML=`<div class="box exam"><h3>📝 How the exam asks this</h3><ul>${l.exam.map(e=>`<li>${e}</li>`).join('')}</ul></div>`;c.appendChild(ew);
@@ -1697,6 +2036,8 @@ function renderLesson(c,l){
   if(i>0){const p=el('button','btn ghost sm','← '+LESSONS[i-1].n+' '+LESSONS[i-1].title);p.onclick=()=>go({name:'lesson',id:LESSONS[i-1].id});nav.appendChild(p);}
   if(i<LESSONS.length-1){const n=el('button','btn sm',LESSONS[i+1].n+' '+LESSONS[i+1].title+' →');n.onclick=()=>go({name:'lesson',id:LESSONS[i+1].id});n.style.marginLeft='auto';nav.appendChild(n);}
   c.appendChild(nav);
+  // tap-to-explain across the prose
+  ['.meaningbox','.story','.symtab','.why','.box'].forEach(sel=>$$(sel,c).forEach(annotate));
 }
 function section(title,html){const s=el('div','sec');s.innerHTML=`<h3>${title}</h3>${html}`;return s;}
 
@@ -1780,7 +2121,8 @@ const pick=a=>a[(Math.random()*a.length)|0];
 /* ========== notes ========== */
 function renderNotes(c){
   c.appendChild(el('h1','lesson-title','Notes library'));
-  c.appendChild(el('div','lesson-sub',"Dr. Qureshi's Chapter 1 — every formula, searchable. Tap “teaches this” to jump to the lesson."));
+  c.appendChild(el('div','lesson-sub',"Dr. Qureshi's Chapter 1 — every formula, searchable. Tap “teaches this” to jump to the lesson, or tap any underlined word for its plain meaning."));
+  const dl=el('div','toolrow');const db=el('button','minibtn','📖 Open the Dictionary / my hard words');db.onclick=()=>go({name:'dict'});dl.appendChild(db);c.appendChild(dl);
   const sbar=el('div','searchbar');sbar.innerHTML=`<input id="noteSearch" placeholder="Search formulas, symbols, words…">`;c.appendChild(sbar);
   const list=el('div');c.appendChild(list);
   function draw(q){q=(q||'').toLowerCase();list.innerHTML='';
@@ -1799,6 +2141,7 @@ function renderNotes(c){
       });
     });
     if(!list.children.length)list.innerHTML='<p class="plain">No notes match that search.</p>';
+    $$('.note .meaning',list).forEach(annotate);
   }
   draw('');$('#noteSearch',c).oninput=e=>draw(e.target.value);
 }
