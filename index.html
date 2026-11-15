@@ -818,6 +818,35 @@ DIAGRAMS.conceptmap=(box)=>{
   draw();
 };
 
+/* (6.0) why one matrix — fold the long way into P */
+DIAGRAMS.whyP=(box)=>{
+  box.innerHTML=`<svg viewBox="0 0 520 170" id="wp"></svg>
+   <div class="prow"><button class="btn sm" id="wpFold">⬇ Fold the whole trip into one matrix</button><button class="btn sm ghost" id="wpReset">↩ show the long way</button></div>
+   <div class="readout" id="wpo" style="display:block"></div>`;
+  let folded=false;
+  const draw=()=>{
+    if(!folded){
+      const steps=[['turn','R'],['move','t'],['÷ depth',''],['to pixels','K']];
+      let s='';steps.forEach((st,i)=>{const x=18+i*125;
+        s+=`<rect x="${x}" y="55" width="100" height="56" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+          <text x="${x+50}" y="80" font-size="13" font-weight="700" text-anchor="middle" fill="var(--fg)">${st[0]}</text>
+          <text x="${x+50}" y="97" font-size="12" text-anchor="middle" fill="var(--muted)">${st[1]}</text>`;
+        if(i<3)s+=`<line x1="${x+100}" y1="83" x2="${x+125}" y2="83" stroke="var(--muted)" stroke-width="2" marker-end="url(#wa)"/>`;});
+      s+=`<defs><marker id="wa" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L7,4 L0,8 Z" fill="var(--muted)"/></marker></defs>`;
+      $('#wp').innerHTML=s;
+      $('#wpo').innerHTML=`<span style="width:100%" class="plain">Right now every single point walks through <b>four separate steps</b> — and each one is a place to slip (a forgotten minus, a missed divide, the centre added too early). It works, but it is slow and fiddly.</span>`;
+    } else {
+      $('#wp').innerHTML=`<text x="260" y="34" font-size="12" text-anchor="middle" fill="var(--muted)">multiply once, divide once</text>
+        <rect x="165" y="50" width="190" height="72" rx="14" fill="var(--accent)" stroke="var(--line)"/>
+        <text x="260" y="85" font-size="22" font-weight="700" text-anchor="middle" fill="var(--accent-ink)">P = K[R|t]</text>
+        <text x="260" y="107" font-size="12" text-anchor="middle" fill="var(--accent-ink)">one 3×4 table</text>`;
+      $('#wpo').innerHTML=`<span style="width:100%" class="plain">All four steps fold into <b>one 3×4 matrix P</b>. Projecting a point is now a single multiply, then one divide — same answer, far less to get wrong. And the camera's secrets (its centre, where it looks, its vanishing points) can be read straight out of P.</span>`;
+    }
+  };
+  $('#wpFold',box).onclick=()=>{folded=true;draw();};
+  $('#wpReset',box).onclick=()=>{folded=false;draw();};draw();
+};
+
 /* ========== MODULES + LESSONS ========== */
 const MODULES=[
  {n:1,title:'The pinhole camera',icon:'📷'},
@@ -1257,8 +1286,28 @@ const LESSONS=[
     hints:['Stored from the top.','Top-left.','Corner.'],diag:['Centre is (cx,cy).',null,'Top, not bottom.']}]},
 
 /* ---------- MODULE 6 ---------- */
+{id:'6.0',mod:6,n:'6.0',title:'Why do we need a projection matrix?',sub:'The story before the mechanics',diagram:'whyP',
+ story:`Stop and look at how far you have come. You already know three separate tricks. <b>R</b> turns the world into the camera's point of view. <b>t</b> slides it so the camera sits at the origin. <b>K</b> stretches those camera units into pixels. To photograph one 3D point today, you do all three by hand, one after another, and divide by depth somewhere in the middle. It works — but it is slow, and every step is a place to make a mistake: a forgotten minus in t = −RC, a missed divide-by-depth, the centre added too early. Wouldn't it be nicer to press one button that does the whole trip? That one button is the <b>projection matrix P</b>. It is turn, move, and go-to-pixels, all folded into a single 3×4 table you multiply once. Press "fold" in the picture to watch the four steps collapse into one.`,
+ worked:`<p>The long way (what you do now) vs. the one-matrix way:</p>
+  <div class="work"><div class="line">LONG WAY:  point → ×R → +t → ÷ depth → ×K → pixel   (4 steps)</div><div class="line">ONE MATRIX: point → ×P → ÷ third number → pixel      (1 multiply)</div><div class="res">P = K[R|t]  does the first three steps in advance, once.</div></div>
+  <p class="plain">Same pixel, far fewer chances to slip. And you build P only once, then reuse it for every point in the image.</p>`,
+ formula:{grid:`${MX([['P','=','K [R | t]'],['λ(u,v,1)','=','P (X,Y,Z,1)']],{cap:'one 3×4 matrix for the whole camera'})}`,
+   symbols:[['P','the projection matrix — the whole camera in one 3×4 table'],['K[R|t]','intrinsics × extrinsics, multiplied once'],['λ','the depth you divide by at the end'],['why','do the work once, reuse for every point, and read the camera off P']]},
+ why:['R, t and K are each just matrices.','A chain of matrix steps is itself one matrix — so multiply them in advance.','That product, P = K[R|t], is computed a single time.','After that, projecting any point is one multiply and one divide — and P also lays the camera\'s centre, look direction and vanishing points out in the open.'],
+ mistakes:['Thinking P replaces understanding the steps — it just packages them, and you still divide by the third number.','Expecting P to be 3×3 — it is 3×4 (it eats a homogeneous 4-vector).','Forgetting the final divide, so you stop at (a, b, λ) instead of the pixel.'],
+ exam:['"What is the projection matrix, and why do we use it?" (one object for the whole camera; project any point with one multiply.)','"Write P in terms of K, R and t." (P = K[R|t].)'],
+ practice:[say('Just the idea — no heavy arithmetic yet.'),
+  {t:'m',ask:'The projection matrix P combines which steps into one?',opts:['Only the rotation R','Turn (R), move (t) and go-to-pixels (K)','Only the intrinsics K'],correct:1,
+    hints:['It is the whole journey.','R and t and K together.','All three, as P = K[R|t].'],diag:['That is only part of it.',null,'K alone does not move or turn.']},
+  {t:'m',ask:'Once you have P, projecting a point is…',opts:['four separate steps again','one multiply, then divide by the third number','impossible without K'],correct:1,
+    hints:['That is the whole point of P.','Multiply, then one divide.','λ(u,v,1) = P·X.'],diag:['P replaced those steps.',null,'K is already inside P.']},
+  say('Why bother?'),
+  {t:'m',ask:'The main reason to build P once is…',opts:['it looks impressive','do the work once, reuse it for every point (and read the camera off P)','it avoids using a calculator'],correct:1,
+    hints:['Think of projecting thousands of points.','Build once, reuse many times.','Efficiency plus insight.'],diag:[null,null,'You still use a calculator.']}],
+ reveal:``},
+
 {id:'6.1',mod:6,n:'6.1',title:'Build P = K[R|t], row by row',sub:'Each K row mixes the [R|t] rows',diagram:'pbuilder',
- story:`The full camera is one 3×4 matrix P, made by multiplying K into the extrinsic block [R|t]. The clean way to build it: each row of the answer is one row of K telling you how much of each [R|t] row to take. The top row of K is (f, 0, cx), so the top row of P is f times the first [R|t] row plus cx times the third. Do the three rows and you have P. Hover a K row in the diagram to see which [R|t] rows it combines.`,
+ story:`You just saw <i>why</i> we want one matrix. Here is <i>how</i> to build it. The full camera P is made by multiplying K into the extrinsic block [R|t]. The clean way: each row of the answer is one row of K telling you how much of each [R|t] row to take. The top row of K is (f, 0, cx), so the top row of P is f times the first [R|t] row plus cx times the third. Do the three rows and you have P. Hover a K row in the diagram to see which [R|t] rows it combines.`,
  worked:`<p>K rows (400 0 320),(0 400 240),(0 0 1); [R|t] rows (1 0 0 0),(0 0 −1 0),(0 1 0 −5).</p>
   <div class="work"><div class="line">P row1 = 400·(1 0 0 0) + 320·(0 1 0 −5) = (400, 320, 0, −1600)</div><div class="line">P row2 = 400·(0 0 −1 0) + 240·(0 1 0 −5) = (0, 240, −400, −1200)</div><div class="res">P row3 = 1·(0 1 0 −5) = (0, 1, 0, −5)</div></div>`,
  formula:{grid:`${MX([['400','320','0','−1600'],['0','240','−400','−1200'],['0','1','0','−5']],{cap:'P = K[R | t], 3×4'})}`,
