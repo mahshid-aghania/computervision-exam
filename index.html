@@ -1,0 +1,1108 @@
+<title>Camera Crew</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a single stepper card centered under a sticky crew bar; one idea per screen.
+   Colour code is fixed meaning everywhere:
+   red = camera's RIGHT, blue = camera's FORWARD/looking, orange = the POINT, green = the SHIFT (cx,cy). */
+:root{
+  --bg:#f3f1ea; --surface:#ffffff; --surface2:#f6f4ee; --fg:#1c1b22; --muted:#6a6675;
+  --line:#e2ddd0; --accent:#7b4bff; --accent-ink:#ffffff;
+  --right:#e5372c;   /* camera right  */
+  --forward:#1f73e8; /* camera forward/look */
+  --point:#f08c17;   /* the world point */
+  --shift:#1aa663;   /* add (cx,cy) */
+  --good:#1aa663; --bad:#e5372c; --star:#f4b400;
+  --r:16px; --shadow:0 2px 0 var(--line), 0 10px 30px rgba(20,18,30,.07);
+  --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  --disp:'Space Grotesk','Inter',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141218; --surface:#1e1b24; --surface2:#262230; --fg:#f2eefc; --muted:#a79fb8;
+  --line:#322c3e; --accent:#a98bff; --accent-ink:#1a1130;
+  --right:#ff6a5c; --forward:#64a7ff; --point:#ffb04a; --shift:#4bd392;
+  --good:#4bd392; --bad:#ff6a5c; --star:#ffd23f;
+  --shadow:0 2px 0 rgba(0,0,0,.3), 0 14px 34px rgba(0,0,0,.4);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#141218; --surface:#1e1b24; --surface2:#262230; --fg:#f2eefc; --muted:#a79fb8;
+  --line:#322c3e; --accent:#a98bff; --accent-ink:#1a1130;
+  --right:#ff6a5c; --forward:#64a7ff; --point:#ffb04a; --shift:#4bd392;
+  --good:#4bd392; --bad:#ff6a5c; --star:#ffd23f;
+  --shadow:0 2px 0 rgba(0,0,0,.3), 0 14px 34px rgba(0,0,0,.4);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.5;margin:0;
+  -webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);
+  background:var(--surface);z-index:40}
+h1,h2,h3{font-family:var(--disp);text-wrap:balance;line-height:1.15;margin:0}
+button{font-family:inherit}
+.wrap{max-width:760px;margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:14px 80px}
+
+/* ---- crew bar ---- */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:41;background:var(--surface);
+  border-bottom:1px solid var(--line)}
+.bar-in{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:8px;
+  padding-left:max(12px,env(safe-area-inset-left,0px));
+  padding-right:max(12px,env(safe-area-inset-right,0px));padding-block:9px}
+.brand{font-family:var(--disp);font-weight:700;font-size:1.05rem;letter-spacing:.2px;display:flex;align-items:center;gap:7px;margin-right:auto;cursor:pointer;background:none;border:0;color:inherit;padding:4px}
+.brand .clap{font-size:1.2rem}
+.chip{border:1px solid var(--line);background:var(--surface2);color:var(--fg);border-radius:999px;
+  font-size:.82rem;font-weight:600;padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.chip:active{transform:translateY(1px)}
+.chip .s{color:var(--star)}
+.icon-btn{border:1px solid var(--line);background:var(--surface2);color:var(--fg);border-radius:12px;
+  width:38px;height:38px;font-size:1.05rem;cursor:pointer;display:grid;place-items:center}
+
+/* ---- director ---- */
+.director{display:flex;gap:11px;align-items:flex-start;margin:4px 0 16px}
+.director .face{font-size:2rem;flex:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
+.bubble{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 13px;
+  box-shadow:var(--shadow);font-size:.95rem;min-width:0}
+.bubble b{color:var(--accent)}
+
+/* ---- world map ---- */
+.hero h1{font-size:clamp(1.9rem,7vw,2.8rem);letter-spacing:-.5px}
+.hero p.lede{color:var(--muted);font-size:1.02rem;margin:8px 0 2px;max-width:60ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin:14px 0 6px;font-size:.84rem}
+.legend span{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.dot{width:12px;height:12px;border-radius:50%;flex:none}
+.budget{background:var(--surface2);border:1px dashed var(--line);border-radius:12px;padding:9px 13px;
+  font-size:.86rem;color:var(--muted);margin:14px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:13px;margin-top:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:15px 15px 14px;
+  box-shadow:var(--shadow);cursor:pointer;text-align:left;color:inherit;display:flex;flex-direction:column;gap:7px;
+  position:relative;transition:transform .08s}
+.card:active{transform:translateY(2px)}
+.card .num{font-family:var(--disp);font-weight:700;font-size:1.5rem;color:var(--accent);line-height:1}
+.card h3{font-size:1.05rem}
+.card .meta{display:flex;align-items:center;justify-content:space-between;margin-top:auto;font-size:.8rem;color:var(--muted)}
+.card .mins{background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:2px 9px;font-weight:600}
+.stars-row{letter-spacing:1px;font-size:.95rem}
+.stars-row .on{color:var(--star)}.stars-row .off{opacity:.3}
+.card.done{border-color:color-mix(in srgb,var(--good) 45%,var(--line))}
+.ribbon{position:absolute;top:10px;right:10px;font-size:.7rem;font-weight:700;color:var(--good)}
+
+/* ---- screen stepper ---- */
+.progress{height:8px;background:var(--surface2);border-radius:999px;overflow:hidden;margin:4px 0 16px;border:1px solid var(--line)}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 60%,#fff));transition:width .25s}
+.screen{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+  padding:18px;animation:pop .25s ease}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.eyebrow{font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.screen h2{font-size:1.4rem;margin:5px 0 10px}
+.screen p{margin:10px 0}
+.story{background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:11px 14px;font-size:1.0rem}
+.plain{color:var(--muted);font-size:.92rem;font-style:italic;margin:6px 0 0}
+.reminder{font-size:.84rem;background:color-mix(in srgb,var(--point) 14%,transparent);border:1px solid color-mix(in srgb,var(--point) 40%,var(--line));border-radius:10px;padding:8px 11px;margin:12px 0}
+.work{font-family:var(--mono);font-size:.95rem;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+.work .line{white-space:pre;padding:1px 0}
+.work .res{color:var(--accent);font-weight:700}
+kbd.t{font-family:var(--mono);background:var(--surface2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:.9em}
+
+/* colour meaning helpers */
+.cr{color:var(--right);font-weight:700}.cf{color:var(--forward);font-weight:700}
+.cp{color:var(--point);font-weight:700}.cs{color:var(--shift);font-weight:700}
+.cap{font-weight:700}
+
+/* matrix */
+.mx{display:inline-flex;align-items:stretch;gap:3px;font-family:var(--mono);margin:4px 2px;vertical-align:middle}
+.mx .brk{width:9px;border:2px solid var(--fg);border-right:0;border-radius:3px 0 0 3px}
+.mx .brk.r{border:2px solid var(--fg);border-left:0;border-radius:0 3px 3px 0}
+.mx .rows{display:flex;flex-direction:column;padding:4px 7px;gap:3px}
+.mx .mrow{display:flex;gap:12px;justify-content:center;font-weight:700;font-variant-numeric:tabular-nums}
+.mxlabel{font-size:.78rem;color:var(--muted);display:block;margin-top:3px}
+
+/* diagram shell */
+.diagram{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0}
+.diagram svg{display:block;width:100%;height:auto;touch-action:none}
+.controls{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.ctl{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-size:.88rem}
+.ctl label{font-weight:600}
+.ctl output{font-family:var(--mono);font-weight:700;min-width:48px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.readout{font-family:var(--mono);font-size:.92rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px;display:flex;flex-wrap:wrap;gap:4px 16px}
+.readout b{color:var(--accent)}
+
+/* challenge */
+.q{font-size:1.05rem;margin:6px 0 12px}
+.fields{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:.78rem;color:var(--muted);font-weight:600}
+.field input{width:92px;font-family:var(--mono);font-size:1.1rem;padding:9px 10px;border:1.5px solid var(--line);
+  border-radius:10px;background:var(--surface);color:var(--fg)}
+.field input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;max-width:380px;margin:12px 0}
+.pgrid input{width:100%;font-family:var(--mono);padding:8px 4px;text-align:center;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
+.opts{display:flex;flex-direction:column;gap:9px;margin:12px 0}
+.opt{text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;
+  cursor:pointer;font-size:.97rem;color:inherit}
+.opt:hover{border-color:var(--accent)}
+.opt.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.opt.right{border-color:var(--good);background:color-mix(in srgb,var(--good) 14%,var(--surface))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--surface))}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:12px 18px;font-weight:700;
+  font-size:1rem;cursor:pointer;box-shadow:var(--shadow)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:var(--surface2);color:var(--fg);border:1px solid var(--line);box-shadow:none}
+.btn.sm{padding:9px 13px;font-size:.9rem}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.feedback{margin-top:14px;border-radius:12px;padding:12px 14px;font-size:.96rem;animation:pop .2s}
+.feedback.ok{background:color-mix(in srgb,var(--good) 15%,var(--surface));border:1px solid var(--good)}
+.feedback.no{background:color-mix(in srgb,var(--bad) 12%,var(--surface));border:1px solid var(--bad)}
+.feedback .director-say{display:flex;gap:8px;align-items:flex-start}
+.feedback .face{font-size:1.4rem;flex:none}
+.hintbox{margin-top:12px;background:var(--surface2);border:1px dashed var(--line);border-radius:12px;padding:12px}
+.hintbox .h{margin:6px 0;font-size:.93rem}
+.hintbox .h b{color:var(--accent)}
+.reveal{margin-top:14px;border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:12px;
+  background:color-mix(in srgb,var(--accent) 7%,var(--surface));padding:14px;animation:pop .25s}
+.reveal h4{margin:0 0 6px;font-family:var(--disp);font-size:1rem}
+.sym{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:.88rem;margin-top:8px}
+.sym code{font-family:var(--mono);color:var(--accent);font-weight:700}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+
+/* overlay (cheat sheet) */
+.overlay{position:fixed;inset:0;background:rgba(10,8,18,.55);z-index:60;display:grid;place-items:end center;
+  padding:0;backdrop-filter:blur(3px)}
+.sheet{background:var(--surface);width:100%;max-width:760px;max-height:86vh;overflow:auto;border-radius:18px 18px 0 0;
+  border:1px solid var(--line);box-shadow:0 -10px 40px rgba(0,0,0,.3);
+  padding:18px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+.sheet h2{font-size:1.3rem;margin-bottom:4px}
+.sheet .close{position:sticky;top:0;float:right;border:1px solid var(--line);background:var(--surface2);border-radius:10px;width:34px;height:34px;cursor:pointer;color:inherit;font-size:1.1rem}
+.cs-item{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;background:var(--surface2)}
+.cs-item.locked{opacity:.5}
+.cs-item h4{font-family:var(--disp);font-size:.98rem;margin:0 0 5px}
+.cs-item .locktag{font-size:.75rem;color:var(--muted)}
+
+/* timer / exam */
+.timer{font-family:var(--mono);font-weight:700;font-size:1rem;background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+.exam-q{border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0;background:var(--surface)}
+.exam-q .qn{font-size:.76rem;font-weight:700;color:var(--accent);letter-spacing:.1em;text-transform:uppercase}
+.summary{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--surface);margin-top:14px}
+.summary ul{padding-left:18px}
+.miss{color:var(--bad);font-weight:600}
+
+canvas.confetti{position:fixed;inset:0;pointer-events:none;z-index:80}
+.hidden{display:none}
+a{color:var(--accent)}
+@media (max-width:420px){.pgrid{max-width:100%}.field input{width:84px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;700&display=swap">
+
+<div class="bar"><div class="bar-in">
+  <button class="brand" id="homeBtn"><span class="clap">🎬</span> Camera Crew</button>
+  <button class="chip" id="starsChip"><span class="s">★</span> <span id="starsTotal">0</span></button>
+  <button class="chip" id="cheatBtn">📋 Cheat sheet</button>
+  <button class="icon-btn" id="themeBtn" title="Light / dark">🌙</button>
+</div></div>
+
+<div class="wrap" id="app"></div>
+<canvas class="confetti hidden" id="confetti"></canvas>
+
+<script>
+"use strict";
+/* ============================ helpers ============================ */
+const $=(s,r=document)=>r.querySelector(s);
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+function parseNum(s){
+  if(s==null)return NaN;
+  s=String(s).trim().replace(/−/g,'-').replace(/\s+/g,'');
+  if(s==='')return NaN;
+  if(s.includes('/')){const[a,b]=s.split('/');const n=Number(a),d=Number(b);
+    if(!isNaN(n)&&!isNaN(d)&&d!==0)return n/d;return NaN;}
+  const v=Number(s);return isNaN(v)?NaN:v;
+}
+const approx=(a,b,t=0.03)=>Math.abs(a-b)<=(Math.abs(b)>1e-9?Math.abs(b)*t+0.01:t+0.01);
+const DIRECTOR_FACES={happy:'😄',think:'🤔',cheer:'🤩',clap:'🎬',sorry:'😅'};
+
+/* ============================ state ============================ */
+const SKEY='cameracrew_v1';
+let S={stars:{},done:{},theme:null};
+try{const r=localStorage.getItem(SKEY);if(r)S=Object.assign(S,JSON.parse(r));}catch(e){}
+function save(){try{localStorage.setItem(SKEY,JSON.stringify(S));}catch(e){}}
+function setStar(id,n){ if((S.stars[id]||0)<n){S.stars[id]=n;} if(S.stars[id]==null)S.stars[id]=n; save(); renderStarsTotal();}
+function recordStar(id,n){ const cur=S.stars[id]; if(cur==null||n>cur){S.stars[id]=n;} save(); renderStarsTotal(); }
+function totalStars(){return Object.values(S.stars).reduce((a,b)=>a+(b||0),0);}
+function renderStarsTotal(){$('#starsTotal').textContent=totalStars();}
+
+/* theme */
+function applyTheme(){
+  const root=document.documentElement;
+  if(S.theme==='light'){root.setAttribute('data-theme','light');$('#themeBtn').textContent='🌙';}
+  else if(S.theme==='dark'){root.setAttribute('data-theme','dark');$('#themeBtn').textContent='☀️';}
+  else{root.removeAttribute('data-theme');
+    const d=matchMedia('(prefers-color-scheme:dark)').matches;$('#themeBtn').textContent=d?'☀️':'🌙';}
+}
+$('#themeBtn').onclick=()=>{S.theme=(S.theme==='dark')?'light':(S.theme==='light'?'dark':'dark');save();applyTheme();};
+applyTheme();renderStarsTotal();
+
+/* ============================ cheat sheet ============================ */
+const CHEATS=[
+ {w:1,title:'Pinhole projection',body:'<div class="work"><div class="line">x = f · X / Z</div><div class="line">y = f · Y / Z</div></div><p class="plain">Point at depth Z: multiply by f, divide by depth. Far away (big Z) ⇒ small image.</p>'},
+ {w:2,title:'Homogeneous coordinates',body:'<p><span class="cp">(x, y)</span> → (x, y, 1). To come back, divide by the last number. Last number <b>0</b> = a direction (point at infinity).</p><p>Line through two points = their <b>cross product</b>. Point p is on line l when <code>l · p = 0</code>.</p>'},
+ {w:3,title:'Rotation R',body:'<p>R is a table. Its <b>rows</b> are the camera\'s arrows written in world directions. Row 1 = <span class="cr">right</span>, Row 2 = down, Row 3 = <span class="cf">forward (where it looks)</span>.</p><div class="work"><div class="line">X_cam = R · X_world  (row × point, add)</div></div><p class="plain">Valid rotation: rows length 1, perpendicular, det = +1. Point-rotation matrix is the transpose.</p>'},
+ {w:4,title:'Translation t',body:'<div class="work"><div class="line">X_cam = R·(X_world − C) = R·X_world + t</div><div class="line">t = −R·C        C = −Rᵀ·t</div></div><p class="plain">C is where the camera sits. The camera always sees itself at (0,0,0).</p>'},
+ {w:5,title:'Intrinsics K (to pixels)',body:'<div class="work"><div class="line">u = f·Xc/Zc + cx</div><div class="line">v = f·Yc/Zc + cy</div></div><p>Three moves: divide by depth → multiply by f → add centre (cx,cy). K rows: (f 0 cx)(0 f cy)(0 0 1).</p>'},
+ {w:6,title:'Visibility',body:'<p>Depth <code>Zc</code> = third number of X_cam. <span class="cf">Zc &gt; 0</span> = in front (visible). Zc &lt; 0 = behind the camera (formula still gives a pixel — but it\'s not real).</p>'},
+ {w:7,title:'Projection P',body:'<div class="work"><div class="line">P = K · [R | t]   (3×4)</div><div class="line">λ·(u,v,1) = P·(X,Y,Z,1)</div></div><p class="plain">Multiply, then divide by the third number to get the pixel.</p>'},
+ {w:8,title:'Calibration (DLT)',body:'<p>Each known 3D↔pixel point gives <b>2</b> equations. P has 11 unknowns (up to scale) ⇒ need ≥ <b>6</b> points. Stack into A·p = 0, solve with SVD, then split P into K, R, t.</p>'},
+];
+function openCheat(){
+  const unlockedW=Math.max(1,...Object.keys(S.done).filter(k=>S.done[k]).map(k=>Number(k.split('_')[0])||0),...[1]);
+  const ov=el('div','overlay');
+  const sheet=el('div','sheet');
+  sheet.innerHTML='<button class="close" aria-label="Close">✕</button><h2>📋 Cheat sheet</h2><p class="plain">The formulas you have reached. Capital letters (X,Y,Z)=real world · small letters (x,y,u,v)=image.</p>';
+  CHEATS.forEach(c=>{
+    const unlocked = c.w<=unlockedW+1;
+    const it=el('div','cs-item'+(unlocked?'':' locked'));
+    it.innerHTML=`<h4>World ${c.w} · ${c.title} ${unlocked?'':'<span class="locktag">🔒 play to unlock</span>'}</h4>${unlocked?c.body:''}`;
+    sheet.appendChild(it);
+  });
+  ov.appendChild(sheet);document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  ov.addEventListener('click',e=>{if(e.target===ov)close();});
+  sheet.querySelector('.close').onclick=close;
+}
+$('#cheatBtn').onclick=openCheat;
+
+/* ============================ confetti ============================ */
+function confetti(){
+  const c=$('#confetti');c.classList.remove('hidden');
+  const ctx=c.getContext('2d');const dpr=Math.min(2,devicePixelRatio||1);
+  c.width=innerWidth*dpr;c.height=innerHeight*dpr;ctx.scale(dpr,dpr);
+  const cols=['#e5372c','#1f73e8','#f08c17','#1aa663','#7b4bff','#f4b400'];
+  const P=Array.from({length:140},()=>({x:innerWidth/2,y:innerHeight*0.35,
+    vx:(Math.random()-.5)*11,vy:-Math.random()*13-4,g:0.32+Math.random()*0.2,
+    s:5+Math.random()*7,c:cols[(Math.random()*cols.length)|0],r:Math.random()*6,vr:(Math.random()-.5)*0.4}));
+  let t=0;
+  (function run(){t++;ctx.clearRect(0,0,innerWidth,innerHeight);
+    P.forEach(p=>{p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;
+      ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*0.6);ctx.restore();});
+    if(t<120)requestAnimationFrame(run);else c.classList.add('hidden');
+  })();
+}
+
+/* ============================ matrix render ============================ */
+function MX(rows,colors){ // rows: array of arrays; colors: array (per row) optional
+  let r='<span class="mx"><span class="brk"></span><span class="rows">';
+  rows.forEach((row,i)=>{
+    const col=colors&&colors[i]?`style="color:${colors[i]}"`:'';
+    r+=`<span class="mrow" ${col}>`+row.map(v=>`<span>${v}</span>`).join('')+'</span>';
+  });
+  r+='</span><span class="brk r"></span></span>';
+  return r;
+}
+
+/* ============================ WORLDS DATA ============================ */
+/* Each world: {id,n,title,mins,screens:[...]}  colour meaning fixed everywhere.
+   Screen kinds: 'learn' (title,body,mount?) ; 'num' / 'mc' challenges. */
+
+const RED=getComputedStyle(document.documentElement);
+const reminderLetters='<div class="reminder">✋ Reminder: <b class="cap">Capital X, Y, Z</b> = the real world. <b>small x, y, u, v</b> = the picture.</div>';
+
+/* ---- interactive diagram mounts ---- */
+function mountPinhole(box){
+  box.innerHTML='';
+  const d=el('div','diagram');
+  d.innerHTML=`<svg viewBox="0 0 360 200" id="ph"></svg>`;
+  const ctrls=el('div','controls');
+  ctrls.innerHTML=`
+   <div class="ctl"><label>Tree distance Z</label><input type="range" id="pZ" min="6" max="40" step="1" value="20"><output id="pZo">20</output></div>
+   <div class="ctl"><label>Tree height Y</label><input type="range" id="pY" min="2" max="14" step="1" value="10"><output id="pYo">10</output></div>
+   <div class="ctl"><label>Focal length f</label><input type="range" id="pf" min="1" max="6" step="1" value="2"><output id="pfo">2</output></div>`;
+  const out=el('div','readout');
+  box.append(d,ctrls,out);
+  function draw(){
+    const Z=+$('#pZ').value,Y=+$('#pY').value,f=+$('#pf').value;
+    $('#pZo').textContent=Z;$('#pYo').textContent=Y;$('#pfo').textContent=f;
+    const img=f*Y/Z;
+    // geometry: pinhole at x=200. tree to the left at distance scaled. wall at right.
+    const pin=200, groundY=140;
+    const treeX=pin-(Z*4.2), treeTop=groundY-(Y*7);
+    const wallX=pin+(f*22), wallBot=groundY, imgPix=img*7;
+    const svg=`
+     <line x1="20" y1="${groundY}" x2="340" y2="${groundY}" stroke="var(--line)" stroke-width="2"/>
+     <!-- pinhole wall -->
+     <line x1="${pin}" y1="40" x2="${pin}" y2="170" stroke="var(--muted)" stroke-width="3"/>
+     <circle cx="${pin}" cy="${groundY-24}" r="3.2" fill="var(--fg)"/>
+     <text x="${pin}" y="34" font-size="9" text-anchor="middle" fill="var(--muted)">pinhole</text>
+     <!-- image wall -->
+     <line x1="${wallX}" y1="55" x2="${wallX}" y2="160" stroke="var(--forward)" stroke-width="3"/>
+     <text x="${wallX}" y="172" font-size="9" text-anchor="middle" fill="var(--forward)">wall (f=${f})</text>
+     <!-- tree -->
+     <line x1="${treeX}" y1="${groundY}" x2="${treeX}" y2="${treeTop}" stroke="#6b4a2b" stroke-width="4"/>
+     <circle cx="${treeX}" cy="${treeTop}" r="10" fill="var(--good)"/>
+     <text x="${treeX}" y="${groundY+13}" font-size="9" text-anchor="middle" fill="var(--muted)">tree Y=${Y}</text>
+     <!-- rays through pinhole: top of tree -> down on wall, base -> up -->
+     <line x1="${treeX}" y1="${treeTop}" x2="${wallX}" y2="${(groundY-24)+(((groundY-24)-treeTop)/(pin-treeX))*(wallX-pin)}" stroke="var(--point)" stroke-width="1.4" stroke-dasharray="3 3"/>
+     <!-- inverted image on wall -->
+     <line x1="${wallX}" y1="${groundY-24}" x2="${wallX}" y2="${groundY-24+imgPix}" stroke="var(--point)" stroke-width="5"/>
+     <text x="${wallX+5}" y="${groundY-24+imgPix}" font-size="9" fill="var(--point)">▼ image</text>
+     <!-- similar triangle shade -->
+     <polygon points="${pin},${groundY-24} ${treeX},${treeTop} ${treeX},${groundY-24}" fill="var(--good)" opacity="0.12"/>
+     <polygon points="${pin},${groundY-24} ${wallX},${groundY-24} ${wallX},${groundY-24+imgPix}" fill="var(--point)" opacity="0.18"/>`;
+    $('#ph').innerHTML=svg;
+    out.innerHTML=`<span>image height = f·Y/Z = <b>${f}·${Y}/${Z} = ${img.toFixed(2)}</b></span>
+      <span style="width:100%" class="plain">The real tree is ${Y} tall and ${Z} away. On the wall it shows up ${img.toFixed(2)} tall, upside-down.</span>`;
+  }
+  ctrls.querySelectorAll('input').forEach(i=>i.oninput=draw);draw();
+}
+
+function mountHomog(box){
+  box.innerHTML='';
+  const d=el('div','diagram');d.innerHTML=`<svg viewBox="0 0 360 180" id="hg"></svg>`;
+  const ctrls=el('div','controls');
+  ctrls.innerHTML=`<div class="ctl"><label>Scale λ</label><input type="range" id="hl" min="1" max="6" step="0.5" value="3"><output id="hlo">3</output></div>`;
+  const out=el('div','readout');box.append(d,ctrls,out);
+  function draw(){
+    const L=+$('#hl').value;$('#hlo').textContent=L;
+    const x=2,y=1;const sx=L*x,sy=L*y;
+    const ox=40,oy=140,sc=18;
+    const svg=`
+     <line x1="${ox}" y1="20" x2="${ox}" y2="${oy}" stroke="var(--line)" stroke-width="1.5"/>
+     <line x1="${ox}" y1="${oy}" x2="340" y2="${oy}" stroke="var(--line)" stroke-width="1.5"/>
+     <line x1="${ox}" y1="${oy}" x2="${ox+sx*sc}" y2="${oy-sy*sc}" stroke="var(--point)" stroke-width="2" stroke-dasharray="4 3"/>
+     <circle cx="${ox+x*sc}" cy="${oy-y*sc}" r="6" fill="var(--forward)"/>
+     <text x="${ox+x*sc+8}" y="${oy-y*sc-6}" font-size="10" fill="var(--forward)">the real point (2,1,1)</text>
+     <circle cx="${ox+sx*sc}" cy="${oy-sy*sc}" r="6" fill="var(--point)"/>
+     <text x="${ox+sx*sc-4}" y="${oy-sy*sc-9}" font-size="10" fill="var(--point)" text-anchor="end">(${sx},${sy},${L})</text>`;
+    $('#hg').innerHTML=svg;
+    out.innerHTML=`<span>(${sx}, ${sy}, ${L}) ÷ ${L} = <b>(${(sx/L)}, ${(sy/L)})</b></span>
+      <span style="width:100%" class="plain">All orange dots are the <b>same</b> point. Divide by the last number to snap back to (2, 1).</span>`;
+  }
+  ctrls.querySelector('input').oninput=draw;draw();
+}
+
+function mountRotation(box){
+  box.innerHTML='';
+  const d=el('div','diagram');
+  d.innerHTML=`<svg viewBox="0 0 360 210" id="rt"></svg>`;
+  const ctrls=el('div','controls');
+  ctrls.innerHTML=`<div class="ctl"><label>Turn the camera t</label><input type="range" id="rt1" min="0" max="350" step="10" value="90"><output id="rt1o">90°</output></div>`;
+  const out=el('div','readout');box.append(d,ctrls,out);
+  function draw(){
+    const deg=+$('#rt1').value;$('#rt1o').textContent=deg+'°';
+    const t=deg*Math.PI/180;
+    // world map (left) top-down. camera at origin (cx,cy). ball at world (0,2)=up on map.
+    const cx=85,cy=150,sc=30;
+    const ballWX=0,ballWY=2;
+    const bx=cx+ballWX*sc, by=cy-ballWY*sc;
+    // camera arrows: right = (cos t, sin t)? use film convention: forward along world after turning
+    const fwd={x:Math.sin(t),y:Math.cos(t)}; // at t=0 forward=up(+Y)
+    const rgt={x:Math.cos(t),y:-Math.sin(t)};
+    const al=32;
+    // compute X_cam = R*world where rows are camera arrows
+    const Xc = rgt.x*ballWX+rgt.y*ballWY;
+    const Zc = fwd.x*ballWX+fwd.y*ballWY;
+    const svg=`
+     <rect x="15" y="20" width="150" height="175" rx="8" fill="var(--surface)" stroke="var(--line)"/>
+     <text x="90" y="34" font-size="9" text-anchor="middle" fill="var(--muted)">world map (from ceiling)</text>
+     <circle cx="${cx}" cy="${cy}" r="8" fill="var(--fg)"/>
+     <text x="${cx}" y="${cy+20}" font-size="8" text-anchor="middle" fill="var(--muted)">camera</text>
+     <!-- forward cone -->
+     <path d="M${cx},${cy} L${cx+fwd.x*48-rgt.x*20},${cy-fwd.y*48+rgt.y*20} L${cx+fwd.x*48+rgt.x*20},${cy-fwd.y*48-rgt.y*20} Z" fill="var(--forward)" opacity="0.12"/>
+     <line x1="${cx}" y1="${cy}" x2="${cx+rgt.x*al}" y2="${cy-rgt.y*al}" stroke="var(--right)" stroke-width="3" marker-end="url(#arR)"/>
+     <line x1="${cx}" y1="${cy}" x2="${cx+fwd.x*al}" y2="${cy-fwd.y*al}" stroke="var(--forward)" stroke-width="3" marker-end="url(#arF)"/>
+     <circle cx="${bx}" cy="${by}" r="7" fill="var(--point)"/>
+     <text x="${bx+10}" y="${by}" font-size="9" fill="var(--point)">ball</text>
+     <!-- camera own view (right) -->
+     <rect x="195" y="20" width="150" height="175" rx="8" fill="var(--surface)" stroke="var(--line)"/>
+     <text x="270" y="34" font-size="9" text-anchor="middle" fill="var(--muted)">camera's own view</text>
+     <circle cx="270" cy="150" r="8" fill="var(--fg)"/>
+     <line x1="270" y1="150" x2="302" y2="150" stroke="var(--right)" stroke-width="3" marker-end="url(#arR)"/>
+     <line x1="270" y1="150" x2="270" y2="118" stroke="var(--forward)" stroke-width="3" marker-end="url(#arF)"/>
+     <circle cx="${270+Xc*sc}" cy="${150-Zc*sc}" r="7" fill="var(--point)"/>
+     <defs>
+      <marker id="arR" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L6,3.5 L0,7 Z" fill="var(--right)"/></marker>
+      <marker id="arF" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L6,3.5 L0,7 Z" fill="var(--forward)"/></marker>
+     </defs>`;
+    $('#rt').innerHTML=svg;
+    out.innerHTML=`<span><span class="cr">right row</span> · ball = <b>${Xc.toFixed(2)}</b></span>
+      <span><span class="cf">forward row</span> · ball = <b>${Zc.toFixed(2)}</b></span>
+      <span style="width:100%" class="plain">The ball is ${Xc.toFixed(1)} steps to the camera's right and ${Zc.toFixed(1)} steps in front.</span>`;
+  }
+  ctrls.querySelector('input').oninput=draw;draw();
+}
+
+function mountPixels(box){
+  box.innerHTML='';
+  const d=el('div','diagram');d.innerHTML=`<svg viewBox="0 0 360 230" id="px"></svg>`;
+  const ctrls=el('div','controls');
+  ctrls.innerHTML=`
+   <div class="ctl"><label>f</label><input type="range" id="kf" min="100" max="600" step="20" value="400"><output id="kfo">400</output></div>
+   <div class="ctl"><label>Xc</label><input type="range" id="kx" min="-3" max="3" step="0.5" value="2"><output id="kxo">2</output></div>
+   <div class="ctl"><label>Yc</label><input type="range" id="ky" min="-3" max="3" step="0.5" value="1"><output id="kyo">1</output></div>
+   <div class="ctl"><label>Zc (depth)</label><input type="range" id="kz" min="2" max="12" step="1" value="8"><output id="kzo">8</output></div>`;
+  const out=el('div','readout');box.append(d,ctrls,out);
+  const cx=320,cy=240;
+  function draw(){
+    const f=+$('#kf').value,X=+$('#kx').value,Y=+$('#ky').value,Z=+$('#kz').value;
+    $('#kfo').textContent=f;$('#kxo').textContent=X;$('#kyo').textContent=Y;$('#kzo').textContent=Z;
+    const u=f*X/Z+cx, v=f*Y/Z+cy;
+    const sx=330/640, sy=190/480, ox=15,oy=18;
+    const px=ox+u*sx, py=oy+v*sy;
+    const ppx=ox+cx*sx, ppy=oy+cy*sy;
+    const svg=`
+     <rect x="${ox}" y="${oy}" width="330" height="190" fill="var(--surface)" stroke="var(--forward)" stroke-width="2"/>
+     <text x="${ox+4}" y="${oy+12}" font-size="9" fill="var(--muted)">(0,0) pixel</text>
+     <text x="${ox+280}" y="${oy+184}" font-size="9" fill="var(--muted)">640×480</text>
+     <circle cx="${ppx}" cy="${ppy}" r="4" fill="var(--shift)"/>
+     <text x="${ppx+6}" y="${ppy+3}" font-size="9" fill="var(--shift)">centre (${cx},${cy})</text>
+     <circle cx="${Math.max(ox,Math.min(ox+330,px))}" cy="${Math.max(oy,Math.min(oy+190,py))}" r="7" fill="var(--point)"/>
+     <line x1="${ppx}" y1="${ppy}" x2="${Math.max(ox,Math.min(ox+330,px))}" y2="${ppy}" stroke="var(--right)" stroke-width="2" stroke-dasharray="3 2"/>
+     <line x1="${Math.max(ox,Math.min(ox+330,px))}" y1="${ppy}" x2="${Math.max(ox,Math.min(ox+330,px))}" y2="${Math.max(oy,Math.min(oy+190,py))}" stroke="var(--right)" stroke-width="2" stroke-dasharray="3 2"/>`;
+    $('#px').innerHTML=svg;
+    out.innerHTML=`<span>u = f·Xc/Zc + cx = ${f}·${X}/${Z}+${cx} = <b>${u.toFixed(0)}</b></span>
+      <span>v = f·Yc/Zc + cy = ${f}·${Y}/${Z}+${cy} = <b>${v.toFixed(0)}</b></span>
+      <span style="width:100%" class="plain"><span class="cr">Red</span>: multiply by f and divide by depth. <span class="cs">Green</span>: then slide to the centre.</span>`;
+  }
+  ctrls.querySelectorAll('input').forEach(i=>i.oninput=draw);draw();
+}
+
+function mountPipeline(box){
+  box.innerHTML='';
+  const d=el('div','diagram');d.innerHTML=`<svg viewBox="0 0 360 150" id="pp"></svg>`;
+  const btn=el('button','btn sm ghost','▶ Send a point through');
+  const out=el('div','readout');box.append(d,btn,out);
+  const stages=[['World','X,Y,Z'],['[R|t]','turn+move'],['÷ depth','camera'],['K','pixels!']];
+  function draw(active){
+    let svg='';
+    stages.forEach((s,i)=>{
+      const x=20+i*85, on=active>=i;
+      svg+=`<rect x="${x}" y="45" width="68" height="46" rx="9" fill="${on?'var(--accent)':'var(--surface)'}" stroke="var(--line)"/>
+       <text x="${x+34}" y="66" font-size="11" font-weight="700" text-anchor="middle" fill="${on?'var(--accent-ink)':'var(--fg)'}">${s[0]}</text>
+       <text x="${x+34}" y="80" font-size="8" text-anchor="middle" fill="${on?'var(--accent-ink)':'var(--muted)'}">${s[1]}</text>`;
+      if(i<3)svg+=`<line x1="${x+68}" y1="68" x2="${x+85}" y2="68" stroke="var(--muted)" stroke-width="2" marker-end="url(#pa)"/>`;
+    });
+    svg+=`<defs><marker id="pa" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L6,3.5 L0,7 Z" fill="var(--muted)"/></marker></defs>`;
+    if(active>=0){const x=20+active*85+34;svg+=`<circle cx="${x}" cy="35" r="7" fill="var(--point)"><animate attributeName="cy" values="35;40;35" dur="0.6s" repeatCount="indefinite"/></circle>`;}
+    $('#pp').innerHTML=svg;
+  }
+  draw(-1);
+  btn.onclick=()=>{let i=0;draw(0);const labels=['starts in the world','turned & moved by [R|t]','now in camera units, divided by depth','lands on a pixel'];
+    out.textContent=labels[0];
+    const iv=setInterval(()=>{i++;if(i>3){clearInterval(iv);return;}draw(i);out.textContent=labels[i];},700);};
+}
+
+function mountVisibility(box){
+  box.innerHTML='';
+  const d=el('div','diagram');d.innerHTML=`<svg viewBox="0 0 360 170" id="vs"></svg>`;
+  const ctrls=el('div','controls');
+  ctrls.innerHTML=`<div class="ctl"><label>Point depth Zc</label><input type="range" id="vz" min="-6" max="8" step="1" value="4"><output id="vzo">4</output></div>`;
+  const out=el('div','readout');box.append(d,ctrls,out);
+  function draw(){
+    const Z=+$('#vz').value;$('#vzo').textContent=Z;
+    const front=Z>0;const cx=180,cy=150;
+    const px=cx+(Z*16);
+    const svg=`
+     <polygon points="${cx},${cy} 60,30 300,30" fill="var(--forward)" opacity="0.08"/>
+     <line x1="${cx}" y1="${cy}" x2="${cx}" y2="20" stroke="var(--line)" stroke-dasharray="3 3"/>
+     <text x="${cx}" y="16" font-size="9" text-anchor="middle" fill="var(--muted)">↑ +Zc (in front)</text>
+     <circle cx="${cx}" cy="${cy}" r="9" fill="var(--fg)"/>
+     <text x="${cx}" y="${cy+16}" font-size="9" text-anchor="middle" fill="var(--muted)">camera</text>
+     <circle cx="${cx+(front?70:70)}" cy="${front?60:130}" r="9" fill="${front?'var(--good)':'var(--bad)'}"/>
+     <text x="${cx+85}" y="${front?62:132}" font-size="10" fill="${front?'var(--good)':'var(--bad)'}">${front?'VISIBLE ✓':'BEHIND ✗'}</text>`;
+    $('#vs').innerHTML=svg;
+    out.innerHTML=`<span>Zc = <b>${Z}</b> → ${front?'<b style="color:var(--good)">in front, visible</b>':'<b style="color:var(--bad)">behind the camera</b>'}</span>
+     <span style="width:100%" class="plain">${front?'The camera can see it.':'The projection formula still gives a pixel — but it is not really seen.'}</span>`;
+  }
+  ctrls.querySelector('input').oninput=draw;draw();
+}
+
+function mountCheckerboard(box){
+  box.innerHTML='';
+  const d=el('div','diagram');
+  let sq='';for(let r=0;r<5;r++)for(let c=0;c<7;c++){if((r+c)%2===0)sq+=`<rect x="${30+c*26}" y="${30+r*26}" width="26" height="26" fill="var(--fg)" opacity="0.85"/>`;}
+  // mark a few points
+  const pts=[[30,30],[108,56],[212,108]];let mk='';
+  pts.forEach((p,i)=>{mk+=`<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="var(--point)" stroke="var(--surface)" stroke-width="1.5"/><text x="${p[0]+7}" y="${p[1]-5}" font-size="8" fill="var(--point)">P${i+1}</text>`;});
+  d.innerHTML=`<svg viewBox="0 0 360 180"><rect x="28" y="28" width="186" height="134" fill="var(--surface)" stroke="var(--line)"/>${sq}${mk}
+    <text x="300" y="60" font-size="10" fill="var(--muted)">known 3D</text>
+    <text x="300" y="74" font-size="10" fill="var(--muted)">↕ matched to</text>
+    <text x="300" y="88" font-size="10" fill="var(--muted)">known pixel</text></svg>`;
+  box.append(d);
+}
+
+/* ---- Worlds ---- */
+const WORLDS=[
+{id:1,n:1,title:'The Dark Room',sub:'Pinhole camera',mins:15,icon:'🌳',screens:[
+ {kind:'learn',title:'Touch the shot',body:`<p>You are on set in a dark room. Light from the tree sneaks through one tiny hole and paints an <b>upside-down</b> tree on the back wall.</p>
+   <p>Drag the sliders. Watch the wall image shrink when the tree moves far away.</p>${reminderLetters}`,mount:mountPinhole},
+ {kind:'learn',title:'The everyday story',body:`<div class="story">Light travels in straight lines. Only rays through the tiny hole reach the wall. A ray from the treetop crosses the hole and lands <b>low</b>; a ray from the base lands <b>high</b>. So the picture flips. The farther the tree, the smaller its picture — like a friend waving from across a field.</div>`},
+ {kind:'learn',title:'One worked example',body:`<p>Tree is <span class="cp">Y = 6</span> tall, standing <span class="cp">Z = 12</span> away. Focal length <kbd class="t">f = 2</kbd>.</p>
+   <div class="work"><div class="line">image y = f · Y / Z</div><div class="line">        = 2 · 6 / 12</div><div class="line">        = 12 / 12</div><div class="line res">        = 1</div></div>
+   <p class="plain">The real tree is 6 tall and 12 away. On the wall it shows up just 1 tall, upside-down.</p>`},
+ {kind:'num',title:'Your turn',q:`A lamp is <span class="cp">Y = 8</span> tall, <span class="cp">Z = 16</span> away, with <kbd class="t">f = 4</kbd>. How tall is the image?`,
+   fields:[['y','image height']],answers:[2],
+   diagnose:v=>{ if(approx(v[0],8*16/4))return "Looks like you did f·Y·Z or forgot to divide. Divide by the depth Z: 4·8/16.";
+     if(approx(v[0],8/16))return "You divided but forgot to multiply by f. It's f·Y/Z = 4·8/16.";
+     if(approx(v[0],8*4))return "You multiplied f·Y but didn't divide by depth Z.";return null;},
+   hints:['Use image = f · Y / Z.','First line: 4 · 8 / 16 …','4·8 = 32, and 32/16 = 2.'],
+   reveal:`<h4>The formula, unlocked</h4><div class="work"><div class="line">y = f · Y / Z     x = f · X / Z</div></div>
+     <div class="sym"><code>Y, Z</code><span>real-world height and depth (CAPITALS)</span><code>y</code><span>height on the image (small letter)</span><code>f</code><span>focal length: how far the wall sits from the hole</span></div>`},
+ {kind:'num',title:'🎬 BOSS — The tree shot',boss:true,
+   q:`The director points at a tree <span class="cp">10 m</span> tall, <span class="cp">20 m</span> away. The lens has <kbd class="t">f = 1 m</kbd>. Give the image height.`,
+   fields:[['y','image height (m)']],answers:[0.5],
+   diagnose:v=>{ if(approx(v[0],10*20))return "You multiplied Y·Z. Divide by Z instead: 1·10/20.";
+     if(approx(v[0],2))return "Looks flipped: you did Z/Y. It's f·Y/Z = 1·10/20.";
+     if(approx(v[0],10))return "You forgot to divide by the depth Z = 20.";return null;},
+   hints:['image = f · Y / Z.','First line: 1 · 10 / 20 …','10/20 = 0.5 m.'],
+   reveal:`<h4>★ Shot in the can!</h4><p>Far things look small: 10 m of tree becomes just 0.5 m on the wall because it is 20 m away.</p>`}
+]},
+
+{id:2,n:2,title:'The Magic Extra 1',sub:'Homogeneous coordinates',mins:15,icon:'➕',screens:[
+ {kind:'learn',title:'Touch the shot',body:`<p>We glue an extra number onto every point: <span class="cp">(x, y)</span> becomes <span class="cp">(x, y, 1)</span>. Slide λ — the dot slides out, but it is the <b>same</b> point. Divide by the last number to snap it back.</p>`,mount:mountHomog},
+ {kind:'learn',title:'The everyday story',body:`<div class="story">Think of a photo you can zoom. (6, 4, 2) and (3, 2, 1) are the same spot — one is just "twice as zoomed". To read the real place, divide everything by the last number. And train tracks that never meet in real life <b>do</b> meet on the photo, at the horizon — a point whose last number is 0, a pure direction.</div>`},
+ {kind:'learn',title:'One worked example',body:`<p>Snap <span class="cp">(9, 6, 3)</span> back to a normal point.</p>
+   <div class="work"><div class="line">divide every number by the last (3)</div><div class="line">(9/3 , 6/3 , 3/3)</div><div class="line res">= (3, 2)</div></div>
+   <p class="plain">The dot (9,6,3) is the same place as (3,2) — just zoomed ×3.</p>`},
+ {kind:'num',title:'Your turn',q:`Snap <span class="cp">(10, 4, 2)</span> back to a normal (x, y) point.`,
+   fields:[['x','x'],['y','y']],answers:[5,2],
+   diagnose:v=>{ if(approx(v[0],10)&&approx(v[1],4))return "You forgot to divide. Divide each by the last number, 2.";
+     if(approx(v[0],5)&&approx(v[1],4))return "You divided x by 2 but not y. Divide BOTH: 10/2 and 4/2.";return null;},
+   hints:['Divide by the last number, 2.','10/2 = 5 …','4/2 = 2, so (5, 2).'],
+   reveal:`<h4>Formula, unlocked</h4><p>(x, y, w) → divide by w → (x/w, y/w). If <b>w = 0</b> it's a direction (point at infinity).</p>`},
+ {kind:'num',title:'🎬 BOSS — Convert two points',boss:true,
+   q:`Snap <span class="cp">(6, 4, 2)</span> and <span class="cp">(7, 39, 42, 3)</span> back. Give all 5 numbers.`,
+   fields:[['a','(6,4,2)→ x'],['b','y'],['c','(…,3)→ X'],['d','Y'],['e','Z']],
+   answers:[3,2,7/3,13,14],
+   diagnose:v=>{ if(approx(v[0],6)||approx(v[2],7))return "You skipped the dividing. Divide each group by its LAST number (2, then 3).";
+     if(approx(v[2],7/3)&&!approx(v[3],13))return "For the 3D one, divide every number by 3: 39/3 = 13, 42/3 = 14.";return null;},
+   hints:['First group ÷2, second group ÷3.','6/2=3, 4/2=2 …','(3,2) and (7/3, 13, 14).'],
+   reveal:`<h4>★ Nice conversion!</h4><p>And <span class="cp">(7, 39, 42, 0)</span>? Last number 0 — a <b>direction</b>, not a place. We'll test that next.</p>`},
+ {kind:'mc',title:'🎬 BOSS — The zero at the end',boss:true,
+   q:`What is <span class="cp">(7, 39, 42, 0)</span>?`,
+   options:['A normal point you divide by 0','A direction (point at infinity) — not a real place','An error, delete it'],correct:1,
+   diag:['You cannot divide by 0 — that is the clue. A last number of 0 means it is not a place at all.',null,'It is valid and useful: it marks where parallel lines meet on the photo — a vanishing point.'],
+   hints:['Try to divide by the last number… you can\'t.','Zero at the end is special.','It is a direction — a point at infinity (vanishing point).'],
+   reveal:`<h4>★ Exactly</h4><p>Last number 0 = a pure direction. That is how train tracks "meet" at the horizon.</p>`},
+ {kind:'num',title:'🎬 BOSS — The line',boss:true,
+   q:`Find the line through <span class="cp">(4, 1)</span> and <span class="cp">(4, 2)</span>. A line is written (a, b, c). Give a, b, c.`,
+   fields:[['a','a'],['b','b'],['c','c']],answers:[-1,0,4],
+   tol:0.0001,scale:true,
+   diagnose:v=>{ if(approx(v[0],1)&&approx(v[2],-4))return "Right line, flipped sign — that's fine too! But we wrote it as (−1, 0, 4), meaning −x + 4 = 0, i.e. x = 4.";
+     if(approx(v[1],1))return "Check your cross product: the middle term is 4·1 − 1·4 = 0, so b = 0.";return null;},
+   hints:['Make them 3D: (4,1,1) and (4,2,1). Take the cross product.','a = 1·1 − 1·2 = −1; b = 1·4 − 4·1 = 0 …','(−1, 0, 4): it says −x + 4 = 0, so x = 4. A vertical line.'],
+   reveal:`<h4>Formula, unlocked</h4><p>Line through two points = their <b>cross product</b>. Point p lies on line l when <code>l · p = 0</code>.</p>
+     <p class="plain">(−1,0,4) means −x + 0·y + 4 = 0 → x = 4. Both points have x = 4. ✓</p>`}
+]},
+
+{id:3,n:3,title:'Turn the Camera',sub:'Rotation matrix R',mins:25,icon:'🔄',screens:[
+ {kind:'learn',title:'Touch the shot',body:`<p>Here is the set from the ceiling. The camera has two glued-on arrows: <span class="cr">red = right</span>, <span class="cf">blue = forward (where it looks)</span>. Turn the dial. Watch the ball's position in "the camera's own view".</p>${reminderLetters}`,mount:mountRotation},
+ {kind:'learn',title:'The everyday story',body:`<div class="story">R is just a little table. Each <b>row</b> is one of the camera's arrows, written in world directions. To find where the ball is for the camera, you ask each arrow: "how many steps along you is the ball?" That is a row times the point. <span class="cr">Row 1 = right</span>, row 2 = down, <span class="cf">row 3 = forward — and row 3 is exactly where the camera looks.</span></div>`},
+ {kind:'learn',title:'One worked example',body:`<p>A camera with table ${MX([['0','1'],['1','0']],['var(--right)','var(--forward)'])} and a ball at <span class="cp">(3, 0)</span>. Read ROWS across:</p>
+   <div class="work"><div class="line">right  row · ball = 0·3 + 1·0 = 0</div><div class="line">forward row · ball = 1·3 + 0·0 = 3</div><div class="line res">X_cam = (0, 3)</div></div>
+   <p class="plain">The ball is 0 steps to the camera's right and 3 steps in front of it.</p>`},
+ {kind:'num',title:'Your turn',q:`Camera table ${MX([['1','0'],['0','1']],['var(--right)','var(--forward)'])} (no turn), ball at <span class="cp">(2, 5)</span>. Give X_cam.`,
+   fields:[['a','right'],['b','forward']],answers:[2,5],
+   diagnose:v=>{ if(approx(v[0],5)&&approx(v[1],2))return "You swapped them. Row 1 (right) · (2,5) = 2, row 2 (forward) · (2,5) = 5.";return null;},
+   hints:['Each row times the point.','Row 1 = (1,0): 1·2 + 0·5 = 2 …','(2, 5) — no turn means nothing changes.'],
+   reveal:`<h4>Formula, unlocked</h4><div class="work"><div class="line">X_cam = R · X_world   (row × point, add)</div></div>
+     <div class="sym"><code>R</code><span>rows = camera's arrows in world directions</span><code>row 3</code><span>the forward row — where the camera looks</span></div>
+     <p class="plain">2D turn by t: rows (cos t, sin t), (−sin t, cos t). The textbook point-rotation matrix is its transpose.</p>`},
+ {kind:'num',title:'🎬 BOSS — Where is the ball?',boss:true,
+   q:`R has rows <span class="cr">(0, 1)</span> and <span class="cf">(−1, 0)</span>, camera at the origin, ball at <span class="cp">(0, 2)</span>. Give the camera coordinates (right, forward).`,
+   fields:[['a','right'],['b','forward']],answers:[2,0],
+   diagnose:v=>{ if(approx(v[0],-2)&&approx(v[1],0))return "You read the table down its columns (used the transpose). Read ROWS across: row1·(0,2) and row2·(0,2).";
+     if(approx(v[0],0)&&approx(v[1],2))return "You wrote the point back out. Multiply each row BY the point: (0,1)·(0,2) = 2.";
+     if(approx(v[0],0)&&approx(v[1],-2))return "Close, but the forward row (−1,0)·(0,2) = 0, not −2. Multiply term by term and add.";return null;},
+   hints:['Read ROWS across: row 1 · ball, then row 2 · ball.','Row 1 (0,1)·(0,2) = 0·0 + 1·2 = 2 …','Row 2 (−1,0)·(0,2) = 0. So (2, 0).'],
+   reveal:`<h4>★ Got it!</h4><p class="plain">The ball is 2 steps to the camera's right and 0 steps in front. The camera turned, so "up in the world" became "right for the camera".</p>`},
+ {kind:'mc',title:'🎬 BOSS — Is it a real rotation?',boss:true,
+   q:`Is the table with rows <span class="cr">(1, 0)</span> and <span class="cf">(1, 1)</span> a valid rotation?`,
+   options:['Yes — it has 1s and 0s, looks fine','No — row 2 has length √2 (not 1) and the rows are not perpendicular','No — it must have a 0 in the corner'],correct:1,
+   diag:['A rotation needs each row length exactly 1 and rows at right angles. Check row 2: length = √(1²+1²) = √2.',null,'The rule is not about corners. It is: rows length 1, perpendicular, det = +1.'],
+   hints:['Measure each row\'s length and check if they are perpendicular.','Row 2 = (1,1) has length √2, not 1.','Not valid: wrong length AND the rows are not perpendicular.'],
+   reveal:`<h4>Formula, unlocked</h4><p>A valid rotation has <b>Rᵀ R = I</b> and <b>det R = +1</b>: rows length 1, perpendicular. To fix a near-rotation, use SVD: R = U S Vᵀ, then take <b>U Vᵀ</b>.</p>`}
+]},
+
+{id:4,n:4,title:'Move the Camera',sub:'Translation t',mins:20,icon:'🚶',screens:[
+ {kind:'learn',title:'Touch the shot',body:`<p>Same map — now the camera can walk to a new spot <b>C</b>. The camera always sees <b>itself</b> at (0,0,0). So first we subtract C (slide the world so the camera is at home), then we turn by R.</p>${reminderLetters}`,mount:mountRotation},
+ {kind:'learn',title:'The everyday story',body:`<div class="story">Two ways, same answer. Way 1: "move the ball so the camera is at the origin, then turn" → R·(X − C). Way 2: "turn, then add a fixed shift t" → R·X + t, where t = −R·C. The shift t just remembers where the camera walked to.</div>`},
+ {kind:'learn',title:'One worked example',body:`<p>R has rows (1,0),(0,1) (no turn). Camera walks to <span class="cp">C = (3, 2)</span>. Find t.</p>
+   <div class="work"><div class="line">t = −R·C</div><div class="line">R·C = (1·3+0·2 , 0·3+1·2) = (3, 2)</div><div class="line res">t = −(3, 2) = (−3, −2)</div></div>
+   <p class="plain">Don't forget the minus — t points the opposite way to where the camera walked.</p>`},
+ {kind:'num',title:'Your turn',q:`R rows (1,0),(0,1). Camera at <span class="cp">C = (5, −1)</span>. Find t = −R·C.`,
+   fields:[['a','t₁'],['b','t₂']],answers:[-5,1],
+   diagnose:v=>{ if(approx(v[0],5)&&approx(v[1],-1))return "You forgot the minus. t = −R·C, so flip the signs: (−5, 1).";return null;},
+   hints:['t = −R·C. First find R·C, then flip the sign.','R·C = (5, −1) …','t = −(5, −1) = (−5, 1).'],
+   reveal:`<h4>Formula, unlocked</h4><div class="work"><div class="line">X_cam = R·(X − C) = R·X + t</div><div class="line">t = −R·C        C = −Rᵀ·t</div></div>
+     <div class="sym"><code>C</code><span>where the camera sits in the world (CAPITAL)</span><code>t</code><span>the shift that remembers C</span></div>`},
+ {kind:'num',title:'🎬 BOSS — Find t',boss:true,
+   q:`R has rows <span class="cr">(0, 1)</span> and <span class="cf">(−1, 0)</span> (the same camera as before). Camera at <span class="cp">C = (1, 0)</span>. Find t.`,
+   fields:[['a','t₁'],['b','t₂']],answers:[0,1],
+   diagnose:v=>{ if(approx(v[0],0)&&approx(v[1],-1))return "You forgot the minus in t = −R·C. R·C = (0, −1), so t = (0, 1).";
+     if(approx(v[0],1)&&approx(v[1],0))return "Looks like you used C directly. First do R·C: row1·(1,0)=0, row2·(1,0)=−1. Then negate.";return null;},
+   hints:['t = −R·C. Do R·C first, reading rows across.','R·C: (0,1)·(1,0) = 0 ; (−1,0)·(1,0) = −1 → R·C = (0, −1).','t = −(0, −1) = (0, 1).'],
+   reveal:`<h4>★ Camera placed!</h4><p class="plain">[R | t] side by side is called the <b>extrinsic parameters</b>: how the camera is turned and where it stands.</p>`}
+]},
+
+{id:5,n:5,title:'Camera Units to Pixels',sub:'Intrinsic matrix K',mins:20,icon:'📐',screens:[
+ {kind:'learn',title:'Touch the shot',body:`<p>Pixel (0,0) is the <b>top-left</b> of the photo, and y points <b>down</b>. Move the point. <span class="cr">Red arrows</span> = multiply by f (and divide by depth). <span class="cs">Green</span> = slide to the centre (cx, cy).</p>${reminderLetters}`,mount:mountPixels},
+ {kind:'learn',title:'The everyday story',body:`<div class="story">It's like Celsius → Fahrenheit: <b>multiply, then add</b>. Camera units are nice and centred on 0. Pixels start in a corner. So we scale by f and shift by the centre (cx, cy) to land on the right pixel.</div>`},
+ {kind:'learn',title:'One worked example',body:`<p><kbd class="t">f = 100</kbd>, centre <span class="cs">(cx, cy) = (50, 50)</span>, camera point <span class="cp">(1, 0, 2)</span>.</p>
+   <div class="work"><div class="line">u = f·Xc/Zc + cx = 100·1/2 + 50 = 50 + 50 = 100</div><div class="line res">v = f·Yc/Zc + cy = 100·0/2 + 50 = 0 + 50 = 50</div></div>
+   <p class="plain">Divide by depth (2), multiply by f, then add the centre. Pixel (100, 50).</p>`},
+ {kind:'num',title:'Your turn',q:`<kbd class="t">f = 200</kbd>, centre <span class="cs">(100, 100)</span>, camera point <span class="cp">(2, 1, 4)</span>. Give the pixel (u, v).`,
+   fields:[['u','u'],['v','v']],answers:[200,150],
+   diagnose:v=>{ if(approx(v[0],200*2)&&true)return "You forgot to divide by depth Z = 4. Do f·X/Z, not f·X.";
+     if(approx(v[0],100)&&approx(v[1],50))return "You multiplied and divided fine but forgot to add the centre (100,100) at the end.";return null;},
+   hints:['u = f·Xc/Zc + cx. Divide by depth first.','200·2/4 = 100, then + 100 = 200 …','v = 200·1/4 + 100 = 50 + 100 = 150. Pixel (200, 150).'],
+   reveal:`<h4>Formula, unlocked</h4><div class="work"><div class="line">u = f·Xc/Zc + cx</div><div class="line">v = f·Yc/Zc + cy</div></div>
+     <p>Matrix K, read ROWS across: ${MX([['f','0','cx'],['0','f','cy'],['0','0','1']])}</p>
+     <div class="sym"><code>f</code><span>scale (focal length in pixels)</span><code>cx, cy</code><span>the centre of the photo</span></div>
+     <p class="plain">General K has fx, fy (different scales) and a skew term. Double f ⇒ everything twice as far from the centre (zoom in).</p>`},
+ {kind:'num',title:'🎬 BOSS — First pixel',boss:true,
+   q:`<kbd class="t">f = 400</kbd>, centre <span class="cs">(320, 240)</span>, camera-space point <span class="cp">(2, 1, 8)</span>. Give the pixel.`,
+   fields:[['u','u'],['v','v']],answers:[420,290],
+   diagnose:v=>{ if(approx(v[0],400*2+320))return "You forgot to divide by depth Z = 8. It's 400·2/8 + 320.";
+     if(approx(v[0],100)&&approx(v[1],50))return "You forgot to add the centre (320, 240) at the end.";
+     if(approx(v[0],420)&&approx(v[1],240))return "u is right! For v: 400·1/8 = 50, then + 240 = 290.";return null;},
+   hints:['u = f·Xc/Zc + cx. Divide by depth 8 first.','400·2/8 = 100, then + 320 …','v = 400·1/8 + 240 = 50 + 240 = 290. Pixel (420, 290).'],
+   reveal:`<h4>★ On the sensor!</h4><p class="plain">100 pixels right of centre, 50 pixels down — because y points down in an image.</p>`},
+ {kind:'num',title:'🎬 BOSS — Second pixel',boss:true,
+   q:`Same camera (<kbd class="t">f = 400</kbd>, centre <span class="cs">(320, 240)</span>). Point <span class="cp">(−1, 2, 4)</span>. Give the pixel.`,
+   fields:[['u','u'],['v','v']],answers:[220,440],
+   diagnose:v=>{ if(approx(v[0],-400+320))return "You forgot to divide by depth Z = 4. It's 400·(−1)/4 + 320.";
+     if(approx(v[0],-100)&&approx(v[1],200))return "You forgot to add the centre (320, 240).";
+     if(approx(v[1],40))return "For v: 400·2/4 = 200, then + 240 = 440 (not just 200).";return null;},
+   hints:['Keep the minus on X = −1.','u = 400·(−1)/4 + 320 = −100 + 320 = 220 …','v = 400·2/4 + 240 = 200 + 240 = 440. Pixel (220, 440).'],
+   reveal:`<h4>★ Two in a row!</h4><p class="plain">A negative X put the point left of centre (u below 320), but still on the sensor.</p>`}
+]},
+
+{id:6,n:6,title:'In Front or Behind?',sub:'Visibility',mins:10,icon:'👀',screens:[
+ {kind:'learn',title:'Touch the shot',body:`<p>The depth <code>Zc</code> is the <b>third number</b> of X_cam. Slide it. Green when the camera can see the point, red when it is behind the lens.</p>`,mount:mountVisibility},
+ {kind:'learn',title:'The everyday story',body:`<div class="story">A camera only sees what is in front of it. If the third camera number Zc is positive, the point is in front — visible. If Zc is negative, it is behind the camera. The projection formula will still spit out a pixel, but it is a ghost, not something the camera really sees.</div>`},
+ {kind:'mc',title:'Your turn',q:`A point has X_cam = <span class="cp">(3, 1, −2)</span>. Can the camera see it?`,
+   options:['Yes — it gives a pixel so it is visible','No — Zc = −2 is negative, so it is behind the camera','Cannot tell without f'],correct:1,
+   diag:['A pixel can be computed even for points behind the camera — that is the trap. Check the sign of Zc.',null,'You don\'t need f. The sign of Zc alone tells you front vs behind.'],
+   hints:['Look only at the third number, Zc.','Zc = −2.','Negative Zc = behind the camera, not visible.'],
+   reveal:`<h4>Rule, unlocked</h4><p><b>Zc &gt; 0</b> → in front (visible). <b>Zc &lt; 0</b> → behind. Also check the pixel lands inside the image (0…width, 0…height).</p>`},
+ {kind:'mc',title:'🎬 BOSS — Spot the ghost',boss:true,
+   q:`A point projects to pixel (160, 1040) on a 640×480 photo, and its X_cam = (2, −10, −5). Is it a real, visible point?`,
+   options:['Yes — it has a pixel','No — Zc = −5 is negative (behind), and the pixel is outside 640×480 too','Yes — pixels are always visible'],correct:1,
+   diag:['The formula gives a pixel even for ghosts. Zc = −5 < 0 means behind the camera.',null,'Not always — behind-camera points still produce pixel numbers. Zc = −5 is the giveaway.'],
+   hints:['Check the third camera number and the image size.','Zc = −5 < 0 → behind. And v = 1040 > 480.','Behind the camera AND off the 480-tall photo. Not real.'],
+   reveal:`<h4>★ Caught it!</h4><p class="plain">This exact point comes back in the final exam — remember: negative depth = behind the camera.</p>`}
+]},
+
+{id:7,n:7,title:'One Matrix to Rule Them All',sub:'Projection matrix P',mins:25,icon:'🎞️',screens:[
+ {kind:'learn',title:'Touch the shot',body:`<p>Everything we learned becomes one pipeline. Press play and watch a point travel: world → <b>[R|t]</b> (turn & move) → divide by depth → <b>K</b> (to pixels).</p>${reminderLetters}`,mount:mountPipeline},
+ {kind:'learn',title:'The everyday story',body:`<div class="story">We can fold the whole journey into one 3×4 table called P = K·[R|t]. Feed it a world point with a 1 glued on. It gives you (something, something, depth). Divide by that last depth number and you have your pixel. One multiply, one divide.</div>`},
+ {kind:'learn',title:'One worked example',body:`<p>To build one row of P, take a row of K and mix the rows of [R|t]. Say K's first row is (f, 0, cx) and</p>
+   <p>[R|t] rows are r₁, r₂, r₃. Then:</p>
+   <div class="work"><div class="line">P row 1 = f·r₁ + 0·r₂ + cx·r₃</div></div>
+   <p class="plain">Each K number says "how much of each [R|t] row to use". We'll do a full one in the boss.</p>`},
+ {kind:'num',title:'Your turn',q:`λ·(u,v,1) = P·(X,Y,Z,1). If P·point = <span class="cp">(60, 90, 3)</span>, what pixel is it?`,
+   fields:[['u','u'],['v','v']],answers:[20,30],
+   diagnose:v=>{ if(approx(v[0],60)&&approx(v[1],90))return "You forgot the last step: divide by the third number, 3.";return null;},
+   hints:['Divide by the third (depth) number.','60/3 = 20 …','90/3 = 30. Pixel (20, 30).'],
+   reveal:`<h4>Formula, unlocked</h4><div class="work"><div class="line">P = K · [R | t]   (3×4)</div><div class="line">λ·(u, v, 1) = P·(X, Y, Z, 1)</div></div>
+     <p class="plain">Multiply, then divide by the third number to get the pixel.</p>`},
+ {kind:'num',title:'🎬 BOSS — Midterm (a) focal length & centre',boss:true,
+   q:`Professor's midterm. K has rows ${MX([['400','0','320'],['0','400','240'],['0','0','1']])}. Read off the focal length and principal point (f, cx, cy).`,
+   fields:[['f','f'],['cx','cx'],['cy','cy']],answers:[400,320,240],
+   diagnose:v=>{ if(approx(v[0],320))return "That's the centre, not f. f sits top-left (the 400s). The centre (cx,cy) is the top two of the last column.";return null;},
+   hints:['f is the top-left number. (cx,cy) is the last column, top two.','f = 400 …','cx = 320, cy = 240.'],
+   reveal:`<h4>★ (a) done</h4><p class="plain">K rows (f 0 cx)(0 f cy)(0 0 1). Read it straight off.</p>`},
+ {kind:'num',title:'🎬 Midterm (b) — find t',boss:true,
+   q:`R has rows ${MX([['1','0','0'],['0','0','-1'],['0','1','0']])} and the camera sits at <span class="cp">C = (0, 5, 0)</span>. Find t = −R·C.`,
+   fields:[['a','t₁'],['b','t₂'],['c','t₃']],answers:[0,0,-5],
+   diagnose:v=>{ if(approx(v[2],5))return "You forgot the minus. R·C = (0, 0, 5), so t = −(0,0,5) = (0, 0, −5).";
+     if(approx(v[1],5))return "Read rows across. Row 2 (0,0,−1)·(0,5,0) = 0, row 3 (0,1,0)·(0,5,0) = 5. Then negate.";return null;},
+   hints:['R·C first, rows across, then flip sign.','Row 3 (0,1,0)·(0,5,0) = 5; others 0 → R·C = (0,0,5).','t = −(0, 0, 5) = (0, 0, −5).'],
+   reveal:`<h4>★ (b) done</h4><p class="plain">The camera stands 5 up the Y-axis; t remembers that as −5 in the third slot.</p>`},
+ {kind:'pmatrix',title:'🎬 Midterm (c) — build P',boss:true,
+   q:`Build P = K·[R|t]. Using K above, R above, and t = (0,0,−5). Fill the 3×4 table. (Tip: P row = K-row mixed into the [R|t] rows.)`,
+   answers:[400,320,0,-1600, 0,240,-400,-1200, 0,1,0,-5],
+   hints:['[R|t] rows: (1 0 0 | 0), (0 0 −1 | 0), (0 1 0 | −5). P row1 = 400·r1 + 0·r2 + 320·r3.',
+     'P row1 = 400·(1,0,0,0) + 320·(0,1,0,−5) = (400, 320, 0, −1600).',
+     'Row2 = 400·(0,0,−1,0)+240·(0,1,0,−5) = (0,240,−400,−1200). Row3 = (0,1,0,−5).'],
+   reveal:`<h4>★ (c) — P is built</h4><p>P = ${MX([['400','320','0','-1600'],['0','240','-400','-1200'],['0','1','0','-5']])}</p><p class="plain">That single 3×4 table now does the whole job.</p>`},
+ {kind:'num',title:'🎬 Midterm (d) — project a point',boss:true,
+   q:`Project world point <span class="cp">(2, 0, 10)</span>. First give X_cam = R·X + t, then the pixel (u, v).`,
+   fields:[['xc','X_cam₁'],['yc','X_cam₂'],['zc','X_cam₃'],['u','u'],['v','v']],answers:[2,-10,-5,160,1040],
+   diagnose:v=>{ if(approx(v[2],-5)&&approx(v[3],160)&&approx(v[4],1040))return null;
+     if(approx(v[3],160)&&!approx(v[4],1040))return "u is right. v = 400·(−10)/(−5) + 240 = 800 + 240 = 1040 (two minuses cancel).";
+     if(!approx(v[0],2))return "X_cam = R·(2,0,10) + t. Row1=2, row2=0·2+0·0−1·10=−10, row3=0·2+1·0+0·10=0, then +t (0,0,−5) → (2,−10,−5).";return null;},
+   hints:['R·(2,0,10): row1=2, row2=−10, row3=0. Add t=(0,0,−5) → X_cam=(2,−10,−5).','u = 400·2/(−5)+320 = −160+320 = 160.','v = 400·(−10)/(−5)+240 = 800+240 = 1040.'],
+   reveal:`<h4>★ (d) — but look at the depth!</h4><p class="plain">X_cam = (2, −10, −5). The depth is <b>negative</b>, so the point is BEHIND the camera. The camera looks along +y from y = 5; the point is at y = 0, which is behind it. The pixel (160, 1040) is a ghost.</p>`},
+ {kind:'mc',title:'🎬 Midterm (e) — where does it look?',boss:true,
+   q:`Which way does this camera look? (R rows (1 0 0)(0 0 −1)(0 1 0).)`,
+   options:['World +x (row 1)','World +y (row 3 = (0,1,0))','Straight down −z'],correct:1,
+   diag:['Row 1 is the camera\'s RIGHT, not where it looks.',null,'Row 3 is the forward row. Here it is (0,1,0) = world +y.'],
+   hints:['Row 3 is the forward/looking row.','Row 3 = (0, 1, 0).','That points along world +y.'],
+   reveal:`<h4>★ (e) done</h4><p class="plain">Row 3 = forward = (0,1,0). The camera looks along world +y. That is why the point at y=0, below y=5, ended up behind it.</p>`},
+ {kind:'num',title:'🎬 Midterm (f) — recover C',boss:true,
+   q:`Recover the camera position from R and t: C = −Rᵀ·t, with t = (0, 0, −5). Give C.`,
+   fields:[['a','Cx'],['b','Cy'],['c','Cz']],answers:[0,5,0],
+   diagnose:v=>{ if(approx(v[1],-5))return "Watch the minus. Rᵀ·t = (0, −5, 0), so C = −(0,−5,0) = (0, 5, 0).";
+     if(approx(v[2],5))return "Use Rᵀ (transpose), not R. The columns of R become the rows of Rᵀ.";return null;},
+   hints:['Rᵀ has rows = columns of R: (1,0,0),(0,0,1),(0,−1,0).','Rᵀ·t = (0, −5, 0) …','C = −(0, −5, 0) = (0, 5, 0) — back where we started. ✓'],
+   reveal:`<h4>★ Midterm complete! Full marks.</h4><p class="plain">C = (0, 5, 0) matches the camera we were given. The whole pipeline is reversible.</p>`},
+ {kind:'num',title:'🎬 BOSS — Professor\'s quiz',boss:true,
+   q:`R rows ${MX([['0','0','1'],['0','1','0'],['-1','0','0']])}, camera at <span class="cp">C = (11, 2, 1)</span>, <kbd class="t">f = 3</kbd>, world point <span class="cp">(4, 3, 0)</span>. Give X_cam then the image point (x, y). (No K here — just f, pinhole style.)`,
+   fields:[['xc','X_cam₁'],['yc','X_cam₂'],['zc','X_cam₃'],['x','x'],['y','y']],answers:[-1,1,7,-3/7,3/7],
+   diagnose:v=>{ if(!approx(v[0],-1))return "First do X − C = (4−11, 3−2, 0−1) = (−7, 1, −1). Then R·that, rows across.";
+     if(approx(v[2],7)&&!approx(v[3],-3/7))return "Image: x = f·Xc/Zc = 3·(−1)/7 = −3/7, y = 3·1/7 = 3/7.";return null;},
+   hints:['X − C = (−7, 1, −1). Then X_cam = R·(X−C).','Row1 (0,0,1)·(−7,1,−1) = −1; row2 = 1; row3 (−1,0,0)·(−7,1,−1) = 7 → X_cam = (−1,1,7).','x = 3·(−1)/7 = −3/7, y = 3·1/7 = 3/7.'],
+   reveal:`<h4>★ Quiz aced!</h4><p class="plain">Subtract C first, then rotate, then divide by depth 7 and scale by f = 3.</p>`}
+]},
+
+{id:8,n:8,title:'Calibration',sub:'Where do K, R, t come from?',mins:15,icon:'🏁',screens:[
+ {kind:'learn',title:'Touch the shot',body:`<p>We held a known checkerboard in front of the camera. For each corner we know its real 3D spot <b>and</b> its pixel. From enough matched pairs we can solve for K, R, t.</p>`,mount:mountCheckerboard},
+ {kind:'learn',title:'The everyday story',body:`<div class="story">It's a puzzle in reverse. Each known corner gives us two little clues (one for u, one for v). P has 11 numbers to find (it's up to scale). So we need at least 6 corners. We line all the clues into one big equation A·p = 0 and let SVD find the best p. Then we unpack P back into K, R and t.</div>`},
+ {kind:'mc',title:'Your turn',q:`Each known 3D↔pixel point gives how many equations?`,
+   options:['1 equation','2 equations (one for u, one for v)','11 equations'],correct:1,
+   diag:['Each point pins down both u and v, so it is more than one.',null,'11 is the number of unknowns in P, not the equations per point.'],
+   hints:['Think how many numbers a pixel has.','A pixel is (u, v) — two numbers.','So 2 equations per point.'],
+   reveal:`<h4>Idea, unlocked</h4><p>P has 11 unknowns (up to scale). 2 equations per point ⇒ need ≥ 6 points. Stack into A·p = 0, solve by SVD (this is the DLT), then split P into K, R, t.</p>`},
+ {kind:'mc',title:'🎬 BOSS — How many points?',boss:true,
+   q:`P has 11 unknowns (up to scale) and each point gives 2 equations. What is the smallest number of points?`,
+   options:['3 points','6 points','11 points'],correct:1,
+   diag:['3 points give only 6 equations — not enough for 11 unknowns.',null,'You don\'t need 11 points. 6 points give 12 equations ≥ 11 unknowns.'],
+   hints:['Need at least 11 equations. Each point gives 2.','11 / 2 = 5.5 → round up.','6 points (12 equations) is enough.'],
+   reveal:`<h4>★ Calibration understood</h4><p class="plain">6 points, SVD, split P into K, R, t. That's where every number in this course comes from.</p>`}
+]},
+
+{id:9,n:9,title:'Final Shoot',sub:'Exam mode',mins:35,icon:'🏆',exam:true}
+];
+
+/* ============================ router / render ============================ */
+const app=$('#app');
+let view={name:'home'};
+
+$('#homeBtn').onclick=()=>{view={name:'home'};render();};
+$('#starsChip').onclick=()=>{view={name:'home'};render();};
+
+function director(face,html){return `<div class="director"><div class="face">${DIRECTOR_FACES[face]||'🎬'}</div><div class="bubble">${html}</div></div>`;}
+
+function render(){
+  app.innerHTML='';
+  if(view.name==='home')return renderHome();
+  if(view.name==='world')return renderWorld(view.world,view.step||0);
+  if(view.name==='exam')return renderExam();
+}
+
+function worldProgress(w){
+  if(!w.screens)return {done:0,total:0};
+  const ch=w.screens.filter(s=>s.kind!=='learn');
+  const done=ch.filter((s,i)=>S.stars[`${w.id}_${w.screens.indexOf(s)}`]!=null).length;
+  return {done,total:ch.length};
+}
+
+function renderHome(){
+  const done=Object.keys(S.done).length;
+  const h=el('div','hero');
+  h.innerHTML=`${director('clap',`Welcome to the set, operator! I'm your director. Nine shots, about <b>3 hours</b>, all in one day. Tap a world to roll camera. 🎬`)}
+    <h1>Camera Crew</h1>
+    <p class="lede">Learn the "camera models &amp; image formation" chapter as a film set. Every idea starts as a picture you can touch — then a story, a tiny example, your turn, and only then the formula.</p>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--right)"></i>camera's right</span>
+      <span><i class="dot" style="background:var(--forward)"></i>forward / looking</span>
+      <span><i class="dot" style="background:var(--point)"></i>the point</span>
+      <span><i class="dot" style="background:var(--shift)"></i>shift by (cx,cy)</span>
+    </div>
+    <div class="budget">⏱️ Time budget shown on each card. Falling behind? Use <b>Fast track</b> inside a world to jump straight to the boss. Hints cost stars but never block you. Progress saves in this browser.</div>`;
+  app.appendChild(h);
+  const grid=el('div','grid');
+  WORLDS.forEach(w=>{
+    const pr=worldProgress(w);
+    const stars=Object.keys(S.stars).filter(k=>k.startsWith(w.id+'_')).reduce((a,k)=>a+(S.stars[k]||0),0);
+    const maxStars=pr.total*3;
+    const complete=pr.total>0&&pr.done>=pr.total;
+    const card=el('button','card'+(complete?' done':''));
+    card.innerHTML=`${complete?'<span class="ribbon">✓ wrapped</span>':''}
+      <div class="num">${w.icon} ${w.n}</div>
+      <h3>${w.title}</h3>
+      <div style="color:var(--muted);font-size:.85rem">${w.sub}</div>
+      <div class="meta"><span class="mins">⏱ ${w.mins} min</span>
+      <span class="stars-row">${w.exam?'🎓 exam':starsBar(stars,maxStars||3)}</span></div>`;
+    card.onclick=()=>{ if(w.exam){view={name:'exam'};}else{view={name:'world',world:w.id,step:0};} render(); window.scrollTo(0,0);};
+    grid.appendChild(card);
+  });
+  app.appendChild(grid);
+}
+function starsBar(got,max){
+  if(!max)return '';
+  const filled=Math.min(max,got);
+  let s='';for(let i=0;i<Math.max(3,0);i++){}
+  return `<span class="on">★</span>${got} / ${max}`;
+}
+
+function renderWorld(wid,step){
+  const w=WORLDS.find(x=>x.id===wid);
+  const screens=w.screens;step=Math.max(0,Math.min(step,screens.length-1));
+  view.step=step;
+  const sc=screens[step];
+  // top: progress + back-to-map + fast track
+  const top=el('div');
+  const pct=Math.round(((step+1)/screens.length)*100);
+  top.innerHTML=`<div class="row" style="margin:0 0 6px;justify-content:space-between">
+     <button class="chip" id="toMap">← Map</button>
+     <div style="font-size:.82rem;color:var(--muted)">${w.icon} World ${w.n} · ${w.title} · ${step+1}/${screens.length}</div>
+     <button class="chip" id="fast">⏩ Fast track</button></div>
+    <div class="progress"><i style="width:${pct}%"></i></div>`;
+  app.appendChild(top);
+  $('#toMap').onclick=()=>{view={name:'home'};render();window.scrollTo(0,0);};
+  $('#fast').onclick=()=>{ // jump to first boss screen
+    const bi=screens.findIndex(s=>s.boss);
+    view={name:'world',world:wid,step:bi>=0?bi:screens.length-1};render();window.scrollTo(0,0);};
+
+  const card=el('div','screen');
+  app.appendChild(card);
+  const key=`${wid}_${step}`;
+
+  if(sc.kind==='learn'){
+    card.innerHTML=`<div class="eyebrow">${sc.title}</div><h2>${sc.title==='Touch the shot'?'Touch the shot':sc.title}</h2><div class="body"></div>`;
+    $('.body',card).innerHTML=sc.body;
+    if(sc.mount){const box=el('div');$('.body',card).appendChild(box);sc.mount(box);}
+  } else {
+    renderChallenge(card,sc,key);
+  }
+  // nav
+  const nav=el('div','nav');
+  const back=el('button','btn ghost sm','← Back');back.disabled=step===0;
+  back.onclick=()=>{view.step=step-1;render();window.scrollTo(0,0);};
+  const isLast=step===screens.length-1;
+  const next=el('button','btn sm',isLast?'🏁 Back to map':'Next →');
+  next.onclick=()=>{ if(isLast){S.done[`${wid}_done`]=true;save();view={name:'home'};render();}
+    else{view.step=step+1;render();} window.scrollTo(0,0);};
+  nav.append(back,next);
+  card.appendChild(nav);
+}
+
+function renderChallenge(card,sc,key){
+  const solved=S.stars[key]!=null;
+  card.innerHTML=`<div class="eyebrow">${sc.boss?'🎬 Boss challenge':'Your turn'}</div>
+    <h2>${sc.title.replace('🎬 ','').replace('BOSS — ','').replace('Midterm ','Midterm ')}</h2>
+    <div class="q">${sc.q}</div>
+    <div class="inputs"></div>
+    <div class="row"><button class="btn" id="check">Check my answer ✓</button>
+      <button class="btn ghost sm" id="hintBtn">💡 Hint (−½★)</button>
+      <span id="starState" style="margin-left:auto;font-size:.85rem;color:var(--muted)"></span></div>
+    <div class="hintbox hidden" id="hints"></div>
+    <div id="fb"></div>`;
+  const inputs=$('.inputs',card);
+  const st={hintsUsed:0,done:solved};
+  // build inputs
+  if(sc.kind==='num'){
+    const f=el('div','fields');
+    sc.fields.forEach((fd,i)=>{
+      f.innerHTML+=`<div class="field"><label>${fd[1]}</label><input id="f${i}" inputmode="text" autocomplete="off" aria-label="${fd[1]}"></div>`;
+    });
+    inputs.appendChild(f);
+  } else if(sc.kind==='pmatrix'){
+    const g=el('div','pgrid');
+    for(let i=0;i<12;i++)g.innerHTML+=`<input id="f${i}" inputmode="text" autocomplete="off" aria-label="P entry ${i+1}">`;
+    inputs.appendChild(g);
+  } else if(sc.kind==='mc'){
+    const o=el('div','opts');
+    sc.options.forEach((opt,i)=>{o.innerHTML+=`<button class="opt" data-i="${i}">${opt}</button>`;});
+    inputs.appendChild(o);
+    o.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{o.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');st.sel=+b.dataset.i;});
+  }
+  // hints
+  const hintBtn=$('#hintBtn',card),hintsBox=$('#hints',card);
+  hintBtn.onclick=()=>{
+    if(st.hintsUsed>=sc.hints.length){return;}
+    const labels=['Nudge','First line of working','Full solution'];
+    hintsBox.classList.remove('hidden');
+    hintsBox.innerHTML+=`<div class="h"><b>${labels[st.hintsUsed]||'Hint'}:</b> ${sc.hints[st.hintsUsed]}</div>`;
+    st.hintsUsed++;
+    if(st.hintsUsed>=sc.hints.length){hintBtn.disabled=true;hintBtn.textContent='💡 All hints shown';}
+    updateStarState();
+  };
+  const starEl=$('#starState',card);
+  function maxStarNow(){return Math.max(1,3-Math.ceil(st.hintsUsed*1));} // each hint -1 (min 1 on solve? keep 1)
+  function updateStarState(){ starEl.textContent=st.done?`Earned ★ ${S.stars[key]}`:`Stars available: ${'★'.repeat(maxStarNow())}`; }
+  updateStarState();
+
+  // check
+  $('#check',card).onclick=()=>{
+    const fb=$('#fb',card);
+    if(sc.kind==='mc'){
+      if(st.sel==null){fb.innerHTML=feedback('no','think','Pick an option first. 🎬');return;}
+      const opts=inputs.querySelectorAll('.opt');opts.forEach(x=>x.classList.remove('right','wrong'));
+      if(st.sel===sc.correct){opts[st.sel].classList.add('right');return win(sc,key,st,card,fb);}
+      opts[st.sel].classList.add('wrong');
+      const msg=(sc.diag&&sc.diag[st.sel])||'Not quite — look again.';
+      fb.innerHTML=feedback('no','sorry',`<b>Good try.</b> ${msg} Pick again. 🎬`);
+      return;
+    }
+    // numeric
+    const n=(sc.kind==='pmatrix')?12:sc.fields.length;
+    const raw=[];for(let i=0;i<n;i++)raw.push($('#f'+i,card).value);
+    const parsed=raw.map(parseNum);
+    if(parsed.some(isNaN)){fb.innerHTML=feedback('no','think','Fill every box with a number (fractions like 7/3 are ok). 🎬');return;}
+    const tol=sc.tol||0.03;
+    let ok;
+    if(sc.scale){ // line up to scale: compare ratios / allow sign flip
+      ok=answersMatchScale(parsed,sc.answers);
+    } else {
+      ok=sc.answers.every((a,i)=>approx(parsed[i],a,tol));
+    }
+    if(ok)return win(sc,key,st,card,fb);
+    const msg=sc.diagnose?sc.diagnose(parsed):null;
+    fb.innerHTML=feedback('no','sorry',`<b>Good try — close.</b> ${msg||'Check each line of your working and try new numbers.'} Have another go. 🎬`);
+    // give fresh encouragement; keep inputs
+  };
+  if(solved){const fb=$('#fb',card);fb.innerHTML=`<div class="feedback ok"><div class="director-say"><span class="face">😄</span><div>Already wrapped this shot — ★ ${S.stars[key]}. ${sc.reveal?'':''}</div></div></div>${sc.reveal?`<div class="reveal">${sc.reveal}</div>`:''}`;}
+}
+
+function answersMatchScale(got,ans){
+  // find a scalar s so that got ≈ s*ans (ans nonzero somewhere)
+  let s=null;
+  for(let i=0;i<ans.length;i++){ if(Math.abs(ans[i])>1e-9){ s=got[i]/ans[i]; break; } }
+  if(s==null||!isFinite(s)||Math.abs(s)<1e-9)return false;
+  return ans.every((a,i)=>Math.abs(got[i]-s*a)<=0.02+Math.abs(s*a)*0.03);
+}
+
+function feedback(kind,face,html){
+  return `<div class="feedback ${kind}"><div class="director-say"><span class="face">${DIRECTOR_FACES[face]}</span><div>${html}</div></div></div>`;
+}
+
+function win(sc,key,st,card,fb){
+  const stars=Math.max(1,3-st.hintsUsed);
+  recordStar(key,stars);st.done=true;
+  const lines=['Cut! Perfect take. 🎬','That\'s a wrap on this shot! 🎬','Beautiful — print it! 🎬','Nailed it, operator! 🎬'];
+  fb.innerHTML=`<div class="feedback ok"><div class="director-say"><span class="face">${DIRECTOR_FACES.cheer}</span>
+     <div><b>${lines[(Math.random()*lines.length)|0]}</b> You earned <b>${'★'.repeat(stars)}</b>${st.hintsUsed?` (used ${st.hintsUsed} hint${st.hintsUsed>1?'s':''})`:''}.</div></div></div>
+     ${sc.reveal?`<div class="reveal">${sc.reveal}</div>`:''}`;
+  $('#check',card).disabled=true;
+  const hb=$('#hintBtn',card);if(hb)hb.disabled=true;
+  if(sc.boss)confetti();
+  // update star state label
+  const ss=$('#starState',card);if(ss)ss.textContent=`Earned ★ ${stars}`;
+}
+
+/* ============================ EXAM ============================ */
+const EXAM=[
+ {q:'Tree 12 m tall, 24 m away, f = 2 m. Image height (m)?',a:[1],fields:['height'],
+   fb:'f·Y/Z = 2·12/24 = 1 m.'},
+ {q:'Snap (12, 8, 4) back to (x, y).',a:[3,2],fields:['x','y'],fb:'Divide by 4: (3, 2).'},
+ {q:'R rows (0,1),(−1,0); ball at (0,2); camera at origin. Camera coords (right, forward)?',a:[2,0],fields:['right','forward'],
+   fb:'Rows across: (0,1)·(0,2)=2, (−1,0)·(0,2)=0 → (2, 0).'},
+ {q:'R rows (0,1),(−1,0); camera at C = (1,0). Find t = −R·C (t₁, t₂).',a:[0,1],fields:['t1','t2'],
+   fb:'R·C = (0,−1); t = (0, 1). Don\'t forget the minus.'},
+ {q:'f = 400, centre (320,240), camera point (2,1,8). Pixel (u, v)?',a:[420,290],fields:['u','v'],
+   fb:'u = 400·2/8+320 = 420; v = 400·1/8+240 = 290.'},
+ {q:'Same camera, point (−1, 2, 4). Pixel (u, v)?',a:[220,440],fields:['u','v'],
+   fb:'u = 400·(−1)/4+320 = 220; v = 400·2/4+240 = 440.'},
+ {q:'P·point = (80, 100, 4). What pixel (u, v)?',a:[20,25],fields:['u','v'],
+   fb:'Divide by the third number 4: (20, 25).'},
+ {q:'Quiz: R rows (0,0,1),(0,1,0),(−1,0,0); C=(11,2,1); f=3; point (4,3,0). Image (x, y)?',a:[-3/7,3/7],fields:['x','y'],
+   fb:'X−C=(−7,1,−1); X_cam=(−1,1,7); x=3·(−1)/7=−3/7, y=3/7.'},
+];
+let examState=null;
+function renderExam(){
+  app.innerHTML='';
+  if(!examState)examState={answers:EXAM.map(()=>[]),submitted:false,start:Date.now(),elapsed:0};
+  const top=el('div');
+  top.innerHTML=`<div class="row" style="margin:0 0 8px;justify-content:space-between">
+     <button class="chip" id="toMap">← Map</button>
+     <div style="font-size:.82rem;color:var(--muted)">🏆 World 9 · Final Shoot · 8 questions</div>
+     <span class="timer" id="timer">00:00</span></div>`;
+  app.appendChild(top);
+  $('#toMap').onclick=()=>{view={name:'home'};render();window.scrollTo(0,0);};
+
+  if(examState.submitted)return renderExamResults();
+
+  app.appendChild(el('div',null,director('clap','This is the real shoot. Eight mixed questions, timer running. No hints here — you know this. When you\'re ready, submit for your summary sheet. 🎬')));
+  const form=el('div');
+  EXAM.forEach((q,qi)=>{
+    const d=el('div','exam-q');
+    let fh='';q.fields.forEach((f,fi)=>{fh+=`<div class="field"><label>${f}</label><input id="e${qi}_${fi}" inputmode="text" autocomplete="off" value="${examState.answers[qi][fi]||''}"></div>`;});
+    d.innerHTML=`<div class="qn">Question ${qi+1}</div><div class="q" style="font-size:1rem">${q.q}</div><div class="fields">${fh}</div>`;
+    form.appendChild(d);
+  });
+  app.appendChild(form);
+  const submit=el('button','btn','🏁 Submit the shoot');
+  submit.onclick=()=>{
+    EXAM.forEach((q,qi)=>q.fields.forEach((f,fi)=>{examState.answers[qi][fi]=$('#e'+qi+'_'+fi).value;}));
+    examState.submitted=true;examState.elapsed=Math.floor((Date.now()-examState.start)/1000);
+    render();window.scrollTo(0,0);
+  };
+  app.appendChild(el('div','row')).appendChild(submit);
+
+  // timer tick
+  clearInterval(window.__examTimer);
+  window.__examTimer=setInterval(()=>{
+    if(!examState||examState.submitted){clearInterval(window.__examTimer);return;}
+    const s=Math.floor((Date.now()-examState.start)/1000);
+    const t=$('#timer');if(t)t.textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    else clearInterval(window.__examTimer);
+  },1000);
+}
+function renderExamResults(){
+  let correct=0;const rows=[];
+  EXAM.forEach((q,qi)=>{
+    const got=examState.answers[qi].map(parseNum);
+    const ok=q.a.every((a,i)=>approx(got[i],a,0.03));
+    if(ok)correct++;rows.push({q,ok,got:examState.answers[qi]});
+  });
+  const mins=Math.floor(examState.elapsed/60),secs=examState.elapsed%60;
+  const score=Math.round(correct/EXAM.length*100);
+  if(correct>=6)confetti();
+  const head=el('div',null,director(correct>=6?'cheer':'happy',
+    `That's a wrap! You scored <b>${correct}/${EXAM.length}</b> (${score}%) in ${mins}m ${secs}s. ${correct>=6?'Outstanding shoot! 🏆':'Good work — review the misses below and reshoot any time.'}`));
+  app.appendChild(head);
+
+  // summary sheet
+  const sum=el('div','summary');
+  sum.innerHTML=`<h2 style="font-size:1.2rem;margin-bottom:4px">🎬 Your one-page summary sheet</h2>
+    <p class="plain">Screenshot this to keep it. Every formula, plus the questions to review.</p>
+    <h3 style="font-size:1rem;margin:12px 0 4px">All the formulas</h3>
+    <div class="work"><div class="line">Pinhole:  x = f·X/Z    y = f·Y/Z</div>
+    <div class="line">Homogeneous: (x,y)→(x,y,1); divide by last; last=0 ⇒ direction</div>
+    <div class="line">Line through 2 points = cross product; on line when l·p = 0</div>
+    <div class="line">Rotation: X_cam = R·X  (rows = camera arrows; row3 = look)</div>
+    <div class="line">Valid R: RᵀR = I, det = +1 (rows length 1, perpendicular)</div>
+    <div class="line">Translation: X_cam = R(X−C) = R·X + t ; t = −R·C ; C = −Rᵀt</div>
+    <div class="line">Pixels: u = f·Xc/Zc + cx ;  v = f·Yc/Zc + cy</div>
+    <div class="line">K rows: (f 0 cx)(0 f cy)(0 0 1)</div>
+    <div class="line">Visibility: Zc > 0 in front, Zc < 0 behind</div>
+    <div class="line">Projection: P = K[R|t]; λ(u,v,1)=P(X,Y,Z,1); ÷ third number</div>
+    <div class="line">Calibration: 2 eqns/point, 11 unknowns ⇒ ≥6 points, SVD (DLT)</div></div>`;
+  const miss=rows.filter(r=>!r.ok);
+  sum.innerHTML+=`<h3 style="font-size:1rem;margin:14px 0 4px">${miss.length?'Questions to review':'Nothing to review — perfect!'}</h3>`;
+  if(miss.length){
+    const ul=el('ul');
+    rows.forEach((r,i)=>{ if(!r.ok){
+      ul.innerHTML+=`<li style="margin:8px 0"><span class="miss">Q${EXAM.indexOf(r.q)+1}.</span> ${r.q.q}<br><span class="plain">Your answer: ${r.got.join(', ')||'—'} · Correct: ${r.q.fb}</span></li>`;
+    }});
+    sum.appendChild(ul);
+  }
+  app.appendChild(sum);
+  const again=el('button','btn ghost','↻ Reshoot the exam');
+  again.onclick=()=>{examState=null;render();window.scrollTo(0,0);};
+  const map=el('button','btn','🏁 Back to map');
+  map.onclick=()=>{view={name:'home'};render();window.scrollTo(0,0);};
+  const row=el('div','row');row.append(map,again);app.appendChild(row);
+}
+
+/* ============================ boot ============================ */
+// hot reload preserve
+try{ if(window.claude&&window.claude.hot){
+  window.claude.hot.snapshot&&window.claude.hot.snapshot(()=>({view,examState}));
+}}catch(e){}
+function boot(data){
+  if(data&&data.view){view=data.view;if(data.examState)examState=data.examState;}
+  render();
+}
+try{
+  if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.ready(boot);
+  else boot((window.claude&&window.claude.hot&&window.claude.hot.data)||{});
+}catch(e){boot({});}
+</script>
