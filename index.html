@@ -532,6 +532,124 @@ DIAGRAMS.calib=(box)=>{
   $('#cbAdd',box).onclick=()=>{if(n<6){n++;draw();}};
   $('#cbReset',box).onclick=()=>{n=0;draw();};draw();
 };
+/* (6.6) vanishing point of a direction */
+DIAGRAMS.vanish=(box)=>{
+  box.innerHTML=`<svg viewBox="0 0 520 300" id="vn"></svg>
+   <div class="controls">${ctl('vndx','direction dx',-2,2,0.25,1)}${ctl('vndy','direction dy',-1.5,1.5,0.25,0)}</div>
+   <div class="readout" id="vno"></div>`;
+  const f=400,cx=320,cy=240;
+  const draw=()=>{const dx=+$('#vndx').value,dy=+$('#vndy').value;$('#vndxo').textContent=dx;$('#vndyo').textContent=dy;
+    const u=f*dx+cx,v=f*dy+cy; const ox=30,oy=18,W=460,H=460*480/640,sx=W/640,sy=H/480;
+    const vx=Math.max(ox,Math.min(ox+W,ox+u*sx)),vy=Math.max(oy,Math.min(oy+H,oy+v*sy));
+    let lines='';[0.12,0.3,0.5,0.7,0.88].forEach(fr=>{lines+=`<line x1="${ox+fr*W}" y1="${oy+H}" x2="${vx}" y2="${vy}" stroke="var(--world)" stroke-width="1.4"/>`;});
+    $('#vn').innerHTML=`<rect x="${ox}" y="${oy}" width="${W}" height="${H}" fill="var(--surface2)" stroke="var(--plane)" stroke-width="2"/>
+      ${lines}<circle cx="${vx}" cy="${vy}" r="8" fill="var(--pt)"/>
+      <text x="${vx>ox+W-90?vx-12:vx+12}" y="${vy<oy+20?vy+18:vy-8}" font-size="12" fill="var(--pt)" ${vx>ox+W-90?'text-anchor="end"':''}>vanishing point</text>`;
+    $('#vno').innerHTML=`<span>v = K R d = K·(${dx}, ${dy}, 1) = (f·dx+cx, f·dy+cy) = <b>(${fmt(u)}, ${fmt(v)})</b></span>
+      <span style="width:100%" class="plain">Every world line pointing along d meets at this one pixel. Try dx=1, dy=0 → (720, 240). Translation drops out — only the direction matters.</span>`;};
+  $$('#vndx,#vndy',box).forEach(i=>i.oninput=draw);draw();
+};
+
+/* (6.3) two routes, one pixel */
+DIAGRAMS.tworoutes=(box)=>{
+  box.innerHTML=`<div class="readout" style="display:block"><div class="plain">Midterm camera. Move the world point; both routes must give the same pixel.</div></div>
+   <div class="controls">${ctl('trX','world X',-4,4,1,2)}${ctl('trZ','world Z',2,14,1,10)}</div>
+   <div class="readout" id="tro" style="display:block"></div>`;
+  const K=[[400,0,320],[0,400,240]],R=[[1,0,0],[0,0,-1],[0,1,0]],t=[0,0,-5],
+    P=[[400,320,0,-1600],[0,240,-400,-1200],[0,1,0,-5]];
+  const draw=()=>{const X=+$('#trX').value,Z=+$('#trZ').value;$('#trXo').textContent=X;$('#trZo').textContent=Z;
+    const W=[X,0,Z];
+    const Xc=R.map((row,i)=>row[0]*W[0]+row[1]*W[1]+row[2]*W[2]+t[i]);
+    const u1=K[0][0]*Xc[0]/Xc[2]+K[0][2],v1=K[1][1]*Xc[1]/Xc[2]+K[1][2];
+    const h=P.map(row=>row[0]*X+row[2]*Z+row[3]);
+    const u2=h[0]/h[2],v2=h[1]/h[2];
+    const match=approx(u1,u2,0.001)&&approx(v1,v2,0.001);
+    $('#tro').innerHTML=`<div style="display:flex;gap:28px;flex-wrap:wrap">
+      <div style="min-width:170px"><div class="plain">① Step route</div><div class="mono">X_cam = (${fmt(Xc[0])}, ${fmt(Xc[1])}, ${fmt(Xc[2])})<br>÷ depth → ×f → +centre<br>→ (<b>${fmt(u1)}</b>, <b>${fmt(v1)}</b>)</div></div>
+      <div style="min-width:170px"><div class="plain">② Matrix route</div><div class="mono">P·X = (${fmt(h[0])}, ${fmt(h[1])}, ${fmt(h[2])})<br>÷ third number<br>→ (<b>${fmt(u2)}</b>, <b>${fmt(v2)}</b>)</div></div></div>
+      <div style="margin-top:10px;font-weight:700;color:${match?'var(--good)':'var(--bad)'}">${match?'✓ Same pixel — the two routes agree.':'mismatch'}</div>
+      ${Xc[2]<0?'<div class="plain">Depth is negative → the point is behind the camera (ghost pixel).</div>':''}`;};
+  $$('#trX,#trZ',box).forEach(i=>i.oninput=draw);draw();
+};
+
+/* (6.5) camera centre: PC = 0 */
+DIAGRAMS.centernull=(box)=>{
+  box.innerHTML=`<svg viewBox="0 0 520 170" id="cn"></svg>
+   <div class="controls">${ctl('cnY','slide the point: world Y',0,10,0.5,2)}</div>
+   <div class="readout" id="cno" style="display:block"></div>`;
+  const P=[[400,320,0,-1600],[0,240,-400,-1200],[0,1,0,-5]];
+  const draw=()=>{const Y=+$('#cnY').value;$('#cnYo').textContent=Y;
+    const X=[0,Y,0,1];const r=P.map(row=>row[0]*X[0]+row[1]*X[1]+row[2]*X[2]+row[3]*X[3]);
+    const atC=Math.abs(Y-5)<0.01;const ox=40,oy=90,sc=42;
+    $('#cn').innerHTML=`<line x1="${ox}" y1="${oy}" x2="${ox+10*sc}" y2="${oy}" stroke="var(--world)" stroke-width="2"/>
+      <text x="${ox}" y="${oy+24}" font-size="11" fill="var(--muted)">Y=0</text><text x="${ox+10*sc}" y="${oy+24}" font-size="11" fill="var(--muted)">Y=10</text>
+      <circle cx="${ox+5*sc}" cy="${oy}" r="7" fill="var(--fg)"/><text x="${ox+5*sc}" y="${oy-14}" font-size="12" text-anchor="middle" fill="var(--muted)">camera C (Y=5)</text>
+      <circle cx="${ox+Y*sc}" cy="${oy}" r="8" fill="${atC?'var(--good)':'var(--pt)'}"/><text x="${ox+Y*sc}" y="${oy+40}" font-size="12" text-anchor="middle" fill="var(--pt)">point Y=${Y}</text>`;
+    $('#cno').innerHTML=`<div class="mono">P·(0, ${Y}, 0, 1) = (${fmt(r[0])}, ${fmt(r[1])}, ${fmt(r[2])})</div>
+      <div class="plain" style="margin-top:6px">${atC?'<b style="color:var(--good)">All zeros! The point is exactly at the camera centre C = (0,5,0). So P·(C,1) = 0 — the centre is the null vector of P.</b>':'Slide the point onto C (Y = 5) and watch P·X collapse to (0, 0, 0).'}</div>`;};
+  $('#cnY',box).oninput=draw;draw();
+};
+
+/* (6.4) degrees of freedom counter */
+DIAGRAMS.dof=(box)=>{
+  box.innerHTML=`<div class="readout" style="display:block">
+    <div class="plain" style="text-align:center">Tap each block to add up where P's freedoms come from.</div>
+    <div class="prow" style="justify-content:center;margin-top:12px">
+      <button class="btn sm ghost" data-d="K">K intrinsics</button>
+      <button class="btn sm ghost" data-d="R">R rotation</button>
+      <button class="btn sm ghost" data-d="t">t translation</button></div>
+    <div style="text-align:center;margin-top:16px;font-size:1.4rem;font-weight:700;font-family:var(--disp)" id="dofc">0 DOF</div>
+    <div id="dofm" style="text-align:center;margin-top:8px"></div></div>`;
+  const vals={K:5,R:3,t:3};
+  const msgs={K:'K: focal (fx,fy), principal point (cx,cy), skew s → 5.',R:'R: a 3D rotation → 3.',t:'t: a 3D position → 3.'};
+  const picked=new Set();
+  $$('[data-d]',box).forEach(b=>b.onclick=()=>{const k=b.dataset.d;
+    if(picked.has(k)){picked.delete(k);b.style.background='';}else{picked.add(k);b.style.background='color-mix(in srgb,var(--accent) 25%,transparent)';}
+    const sum=[...picked].reduce((a,k)=>a+vals[k],0);
+    $('#dofc',box).textContent=`${sum} DOF${picked.size===3?'  =  11  =  5 + 3 + 3':''}`;
+    $('#dofm',box).innerHTML=`<span class="plain">${[...picked].map(k=>msgs[k]).join(' ')||'P has 12 entries, minus 1 for overall scale = 11 DOF.'}</span>`;});
+};
+
+/* (7.3) split P = [M | p₄] */
+DIAGRAMS.psplit=(box)=>{
+  box.innerHTML=`<div class="readout" style="display:block">
+    <div style="text-align:center;overflow-x:auto">P = [ M | p₄ ] = ${MX([
+      ['<span data-bk="M">400</span>','<span data-bk="M">320</span>','<span data-bk="M">0</span>','<span data-bk="p">−1600</span>'],
+      ['<span data-bk="M">0</span>','<span data-bk="M">240</span>','<span data-bk="M">−400</span>','<span data-bk="p">−1200</span>'],
+      ['<span data-bk="M">0</span>','<span data-bk="M">1</span>','<span data-bk="M">0</span>','<span data-bk="p">−5</span>']])}</div>
+    <div class="prow" style="justify-content:center;margin-top:12px">
+      <button class="btn sm ghost" data-show="M">M = K·R (RQ)</button>
+      <button class="btn sm ghost" data-show="p">p₄</button>
+      <button class="btn sm ghost" data-show="C">C = −M⁻¹p₄</button></div>
+    <div id="pso" style="text-align:center;margin-top:12px;font-size:1.05rem">Tap a button to highlight which part of P it uses.</div></div>`;
+  const hi=(cls)=>{$$('[data-bk]',box).forEach(s=>{s.style.background='';s.style.borderRadius='3px';});
+    (cls==='all'?['M','p']:[cls]).forEach(c=>$$(`[data-bk="${c}"]`,box).forEach(s=>s.style.background='color-mix(in srgb,var(--accent) 32%,transparent)'));};
+  const msgs={M:'The left 3×3 block M. RQ-decompose it: M = K·R — K is the upper-triangular intrinsics, R the orthogonal rotation.',
+    p:'The last column p₄ = the image of the world origin.',
+    C:'Centre C = −M⁻¹·p₄ (uses both M and p₄). For this camera C = (0, 5, 0).'};
+  $$('[data-show]',box).forEach(b=>b.onclick=()=>{const k=b.dataset.show;hi(k==='C'?'all':k);$('#pso',box).textContent=msgs[k];});
+};
+
+/* (7.4) live radial distortion grid */
+DIAGRAMS.distort=(box)=>{
+  box.innerHTML=`<svg viewBox="0 0 320 320" id="ds" style="max-width:360px;margin:0 auto"></svg>
+   <div class="controls">${ctl('dsk','distortion k₁',-0.6,0.6,0.05,0.3)}</div>
+   <div class="readout" id="dso"></div>`;
+  const cx=160,cy=160,R=140,N=8;
+  const draw=()=>{const k=+$('#dsk').value;$('#dsko').textContent=k;
+    const map=(x,y)=>{const nx=(x-cx)/R,ny=(y-cy)/R,r2=nx*nx+ny*ny,L=1+k*r2;return[cx+nx*L*R,cy+ny*L*R];};
+    let s='';
+    for(let i=0;i<=N;i++){let hp=[],vp=[];
+      for(let j=0;j<=N;j++){hp.push(map(cx-R+2*R*j/N, cy-R+2*R*i/N));vp.push(map(cx-R+2*R*i/N, cy-R+2*R*j/N));}
+      s+=`<polyline points="${hp.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="none" stroke="var(--world)" stroke-width="1.3"/>`;
+      s+=`<polyline points="${vp.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="none" stroke="var(--world)" stroke-width="1.3"/>`;}
+    s+=`<circle cx="${cx}" cy="${cy}" r="3" fill="var(--pt)"/>`;
+    $('#ds').innerHTML=s;
+    $('#dso').innerHTML=`<span>L(r) = 1 + k₁·r² ,  k₁ = ${k}</span>
+      <span style="width:100%" class="plain">${k>0.02?'Positive k₁: the grid bows outward — straight world lines become curved.':k<-0.02?'Negative k₁: the grid bows inward.':'k₁ = 0: perfectly straight (ideal pinhole).'} The centre stays fixed; the effect grows toward the edges. P does not model this — you undistort first.</span>`;};
+  $('#dsk',box).oninput=draw;draw();
+};
+
 /* ========== MODULES + LESSONS ========== */
 const MODULES=[
  {n:1,title:'The pinhole camera',icon:'📷'},
@@ -981,7 +1099,7 @@ const LESSONS=[
   {t:'m',ask:'Depth λ = −5 means the point is…',opts:['in front, visible','behind the camera (ghost pixel)','exactly on the lens'],correct:1,
     hints:['Sign of depth.','Negative.','Behind.'],diag:['Negative = behind.',null,'Not zero.']}]},
 
-{id:'6.3',mod:6,n:'6.3',title:'Two routes, one pixel',sub:'The matrix matches the steps',diagram:null,
+{id:'6.3',mod:6,n:'6.3',title:'Two routes, one pixel',sub:'The matrix matches the steps',diagram:'tworoutes',
  story:`There are two ways to get the pixel and they must agree. Route one: do it step by step — apply R and t to get X_cam, divide by depth, apply K. Route two: build P = K[R|t] and multiply once, then divide. Same pixel every time, because P is literally the steps folded together. On an exam, computing both is a built-in check: if they disagree, you made an arithmetic slip somewhere.`,
  worked:`<div class="work"><div class="line">step route: X_cam = (2,−10,−5) → u=400·2/−5+320=160, v=400·−10/−5+240=1040</div><div class="line">matrix route: P·(2,0,10,1)=(−800,−5200,−5) → (160,1040)</div><div class="res">both give (160, 1040) ✓</div></div>`,
  formula:{grid:`<p>K·(X_cam) ÷ depth  =  (K[R|t])·X ÷ depth. The matrix route = the step route.</p>`,
@@ -995,7 +1113,7 @@ const LESSONS=[
   {t:'m',ask:'The matrix route and step route give…',opts:['different pixels','the same pixel','the same only if Zc>0'],correct:1,
     hints:['P = K[R|t].','Same.','Always identical.'],diag:['They are identical.',null,'True even if behind.']}]},
 
-{id:'6.4',mod:6,n:'6.4',title:'Degrees of freedom of P',sub:'11 = 5 + 3 + 3',diagram:null,
+{id:'6.4',mod:6,n:'6.4',title:'Degrees of freedom of P',sub:'11 = 5 + 3 + 3',diagram:'dof',
  story:`How much information is in P? It has twelve entries, but P is only defined up to an overall scale, so one is redundant — leaving eleven real degrees of freedom. Those eleven split neatly: five from the intrinsics K, three from the rotation, three from the translation. This number is why calibration needs at least six points, and it is a favourite one-mark exam question.`,
  worked:`<div class="work"><div class="line">P has 12 entries</div><div class="line">defined up to scale → subtract 1</div><div class="res">11 DOF = 5 (K) + 3 (R) + 3 (t)</div></div>`,
  formula:{grid:`${MX([['DOF(P)','=','11'],['=','5 + 3 + 3']],{cap:'K + R + t'})}`,
@@ -1009,7 +1127,7 @@ const LESSONS=[
   {t:'m',ask:'The 11 DOF of P split as…',opts:['4 + 4 + 3','5 + 3 + 3 (K, R, t)','6 + 3 + 2'],correct:1,
     hints:['K=5, R=3, t=3.','5+3+3.','That one.'],diag:[null,null,null]}]},
 
-{id:'6.5',mod:6,n:'6.5',title:'The camera centre satisfies PC = 0',sub:'Where the null space points',diagram:null,
+{id:'6.5',mod:6,n:'6.5',title:'The camera centre satisfies PC = 0',sub:'Where the null space points',diagram:'centernull',
  story:`There is a elegant test for the camera centre: feed the homogeneous centre (C, 1) into P and you get all zeros. The centre is the one world point the camera cannot image — rays from it have no direction — so P sends it to the zero vector. Equivalently, C is the null vector of P. This both defines the centre and gives a clean way to recover it, matching C = −Rᵀt.`,
  worked:`<p>Midterm camera, C = (0,5,0).</p>
   <div class="work"><div class="line">P·(0,5,0,1):</div><div class="line">row1: 400·0+320·5+0·0−1600·1 = 1600 − 1600 = 0</div><div class="line">row2: 0·0+240·5−400·0−1200·1 = 1200 − 1200 = 0</div><div class="res">row3: 0+1·5+0−5 = 0  → P(C,1) = (0,0,0) ✓</div></div>`,
@@ -1024,7 +1142,7 @@ const LESSONS=[
   {t:'m',ask:'P·(C,1) comes out as…',opts:['the pixel of C','the zero vector','the focal length'],correct:1,
     hints:['The centre has no image.','All zeros.','0.'],diag:['C has no image.',null,'Not f.']}]},
 
-{id:'6.6',mod:6,n:'6.6',title:'Vanishing point of a direction',sub:'v = K R d',diagram:null,
+{id:'6.6',mod:6,n:'6.6',title:'Vanishing point of a direction',sub:'v = K R d',diagram:'vanish',
  story:`A world direction d (think of the way the rails point) has its own vanishing point in the image. Because a direction has no position, the translation drops out, and the vanishing point is simply K R d — rotate the direction into the camera, then apply the intrinsics, then divide. If the camera is not rotated, R is the identity and it is just K d. This is how you locate where parallel lines meet on the photo.`,
  worked:`<p>R = I, K rows (400 0 320),(0 400 240),(0 0 1), direction d = (1, 0, 1).</p>
   <div class="work"><div class="line">K·d = (400·1 + 320·1, 400·0 + 240·1, 1) = (720, 240, 1)</div><div class="res">÷ 1 → vanishing point (720, 240)</div></div>`,
@@ -1087,7 +1205,7 @@ const LESSONS=[
   {t:'m',ask:'A p = 0 is solved by taking the SVD singular vector with the…',opts:['largest singular value','smallest singular value','middle value'],correct:1,
     hints:['We minimise ‖Ap‖.','Smallest.','Last vector.'],diag:['That maximises it.',null,'Smallest.']}]},
 
-{id:'7.3',mod:7,n:'7.3',title:'Splitting P into K, R, t',sub:'RQ decomposition',diagram:null,
+{id:'7.3',mod:7,n:'7.3',title:'Splitting P into K, R, t',sub:'RQ decomposition',diagram:'psplit',
  story:`Once you have P, you unpack it. The left 3×3 block M factors into an upper-triangular K and an orthogonal R by RQ decomposition — K holds the intrinsics, R the rotation. The centre comes from the null vector, and t follows. One caution: if all your calibration points lie on a single flat plane, the problem is degenerate and P cannot be found, so the board must be moved to several orientations or the points must span depth.`,
  worked:`<div class="work"><div class="line">P = [ M | p₄ ]</div><div class="line">M = K R   (RQ: K upper-triangular, R orthogonal)</div><div class="line">centre C from the null vector of P</div><div class="res">t = −R C ; fix signs so K has positive diagonal</div></div>`,
  formula:{grid:`${MX([['M','=','K R']],{cap:'RQ decomposition of the left 3×3 block'})}`,
@@ -1101,7 +1219,7 @@ const LESSONS=[
   {t:'m',ask:'If all calibration points lie in one plane…',opts:['it works best','the problem is degenerate (no unique P)','R becomes identity'],correct:1,
     hints:['Rank-deficient.','Degenerate.','No solution.'],diag:['It fails.',null,'Not about R.']}]},
 
-{id:'7.4',mod:7,n:'7.4',title:'Lens distortion in one paragraph',sub:'Radial, not in P',diagram:null,
+{id:'7.4',mod:7,n:'7.4',title:'Lens distortion in one paragraph',sub:'Radial, not in P',diagram:'distort',
  story:`Real lenses bend straight lines near the edges — this is radial distortion, and the pinhole P does not model it. The effect grows with distance from the image centre: a point at radius r is pushed in or out by a factor L(r) that depends only on r. Calibration estimates a few distortion coefficients alongside K, and you undistort the image before treating it as an ideal pinhole. Chromatic distortion, where colours focus slightly differently, is a related lens effect.`,
  worked:`<div class="work"><div class="line">r = distance of a point from the image centre</div><div class="line">L(r) = 1 + k₁r + k₂r² + …</div><div class="res">corrected: x̂ = x_c + L(r)(x − x_c), same for y</div></div>`,
  formula:{grid:`${MX([['x̂','=','x_c + L(r)(x − x_c)'],['L(r)','=','1 + k₁r + k₂r² + …']],{cap:'radial correction'})}`,
