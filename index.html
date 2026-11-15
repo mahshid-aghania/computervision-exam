@@ -755,6 +755,69 @@ DIAGRAMS.roundtrip=(box)=>{
   $$('#rpT,#rpCx,#rpCy',box).forEach(i=>i.oninput=draw);draw();
 };
 
+/* (5.3) general K: fx, fy, skew */
+DIAGRAMS.generalK=(box)=>{
+  box.innerHTML=`<svg viewBox="0 0 520 280" id="gk"></svg>
+   <div class="controls">${ctl('gkfx','fx (x scale)',150,600,20,400)}${ctl('gkfy','fy (y scale)',150,600,20,400)}${ctl('gks','skew s',-160,160,10,0)}</div>
+   <div class="readout" id="gko"></div>`;
+  const draw=()=>{const fx=+$('#gkfx').value,fy=+$('#gkfy').value,s=+$('#gks').value;
+    $('#gkfxo').textContent=fx;$('#gkfyo').textContent=fy;$('#gkso').textContent=s;
+    const cx=260,cy=130,sc=0.42,corners=[[-0.5,-0.5],[0.5,-0.5],[0.5,0.5],[-0.5,0.5]];
+    const map=p=>[cx+(fx*p[0]+s*p[1])*sc, cy+(fy*p[1])*sc];
+    const pts=corners.map(map).map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
+    const ref=corners.map(p=>[cx+180*p[0]*sc,cy+180*p[1]*sc]).map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
+    $('#gk').innerHTML=`<polygon points="${ref}" fill="none" stroke="var(--world)" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <polygon points="${pts}" fill="var(--plane)" opacity="0.2" stroke="var(--plane)" stroke-width="2.5"/>
+      <text x="${cx}" y="262" font-size="12" text-anchor="middle" fill="var(--muted)">grey = square pixels · purple = how K scales & skews it</text>`;
+    $('#gko').innerHTML=`<span>u = <b>fx</b>·x + <b>s</b>·y + x₀ ,  v = <b>fy</b>·y + y₀</span>
+      <span style="width:100%" class="plain">${fx!==fy?'fx ≠ fy: non-square pixels stretch x and y differently. ':''}${s!==0?'Skew s ≠ 0 slants the shape (rare in real cameras). ':''}f in pixels = f in mm ÷ pixel size — that is why fx, fy can differ. <b>5 DOF</b> with skew, <b>4</b> without.</span>`;};
+  $$('#gkfx,#gkfy,#gks',box).forEach(i=>i.oninput=draw);draw();
+};
+
+/* (5.4) intrinsic vs extrinsic */
+DIAGRAMS.intvsext=(box)=>{
+  box.innerHTML=`<svg viewBox="0 0 520 210" id="ie"></svg>
+   <div class="controls">${ctl('ieMove','move the camera',-3,3,0.5,0)}${ctl('ieZoom','zoom f',200,700,20,400)}</div>
+   <div class="readout" id="ieo" style="display:block"></div>`;
+  let changed='';
+  const draw=(what)=>{const mv=+$('#ieMove').value,f=+$('#ieZoom').value;$('#ieMoveo').textContent=mv;$('#ieZoomo').textContent=f;
+    if(what)changed=what;const camX=250+mv*34,g=130,half=Math.atan(320/f),uy=Math.sin(half)*120;
+    $('#ie').innerHTML=`<line x1="20" y1="${g}" x2="500" y2="${g}" stroke="var(--world)"/>
+      <polygon points="${camX},${g} ${camX+120},${g-uy} ${camX+120},${g+uy}" fill="var(--zb)" opacity="0.14"/>
+      <circle cx="${camX}" cy="${g}" r="9" fill="var(--fg)"/><text x="${camX}" y="${g+22}" font-size="11" text-anchor="middle" fill="var(--muted)">camera</text>
+      <circle cx="380" cy="${g-26}" r="11" fill="var(--pt)"/><text x="380" y="${g-42}" font-size="11" text-anchor="middle" fill="var(--pt)">object</text>`;
+    $('#ieo').innerHTML=`<div style="display:flex;gap:30px;flex-wrap:wrap">
+      <div><div class="plain">Extrinsic [R | t] — pose</div><div class="mono" style="color:${changed==='move'?'var(--good)':'var(--muted)'}">position = ${fmt(mv)} ${changed==='move'?'← changed':''}</div></div>
+      <div><div class="plain">Intrinsic K — lens</div><div class="mono" style="color:${changed==='zoom'?'var(--good)':'var(--muted)'}">f = ${f} ${changed==='zoom'?'← changed':''}</div></div></div>
+      <div class="plain" style="margin-top:8px">Slide <b>move</b>: only the extrinsics [R|t] change (lens untouched). Slide <b>zoom</b>: only the intrinsics K change (the camera has not moved). Full camera: P = K·[R|t].</div>`;};
+  $('#ieMove',box).oninput=()=>draw('move');$('#ieZoom',box).oninput=()=>draw('zoom');draw();
+};
+
+/* (8.1) tappable concept map */
+DIAGRAMS.conceptmap=(box)=>{
+  const N=[
+   {id:'pin',x:70,y:65,t:'Pinhole',m:'x = fX/Z — far looks smaller, depth is lost.'},
+   {id:'hom',x:150,y:230,t:'Homog.',m:'Add a 1; divide by last; w = 0 is a direction.'},
+   {id:'rot',x:435,y:65,t:'Rot R',m:'Rows = camera axes; row 3 looks; RᵀR = I, det = +1.'},
+   {id:'tr',x:465,y:170,t:'Move t',m:'t = −RC; C = −Rᵀt; depth sign = in front / behind.'},
+   {id:'K',x:355,y:240,t:'K',m:'u = fXc/Zc + cx — divide by depth, scale by f, add centre.'},
+   {id:'cal',x:65,y:175,t:'Calib.',m:'2 eqns/point, 11 unknowns → ≥ 6 points, DLT by SVD.'},
+   {id:'P',x:258,y:150,t:'P',m:'P = K[R|t]; 11 DOF = 5+3+3; PC = 0; vanishing = KRd.'},
+  ];
+  const E=[['pin','P'],['hom','P'],['rot','P'],['tr','P'],['K','P'],['cal','P'],['rot','tr'],['tr','K']];
+  const pos=id=>N.find(n=>n.id===id);let sel=null;
+  box.innerHTML=`<svg viewBox="0 0 520 300" id="cm"></svg><div class="readout" id="cmo" style="display:block">Tap a topic to recall its one-line idea for the exam.</div>`;
+  function draw(){
+    const e=E.map(([a,b])=>{const p=pos(a),q=pos(b);return `<line x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}" stroke="var(--line)" stroke-width="2"/>`;}).join('');
+    const nn=N.map(n=>{const r=n.id==='P'?30:26;
+      return `<g data-n="${n.id}" style="cursor:pointer"><circle cx="${n.x}" cy="${n.y}" r="${r}" fill="${sel===n.id?'var(--accent)':(n.id==='P'?'color-mix(in srgb,var(--accent) 22%,var(--surface))':'var(--surface)')}" stroke="var(--accent)" stroke-width="2"/>
+        <text x="${n.x}" y="${n.y+4}" font-size="11" font-weight="700" text-anchor="middle" fill="${sel===n.id?'var(--accent-ink)':'var(--fg)'}">${n.t}</text></g>`;}).join('');
+    $('#cm').innerHTML=e+nn;
+    $$('#cm [data-n]',box).forEach(g=>g.onclick=()=>{sel=g.dataset.n;const n=pos(sel);$('#cmo',box).innerHTML=`<b>${n.m.split('—')[0]}</b> ${n.m}`;draw();});
+  }
+  draw();
+};
+
 /* ========== MODULES + LESSONS ========== */
 const MODULES=[
  {n:1,title:'The pinhole camera',icon:'📷'},
@@ -1123,7 +1186,12 @@ const LESSONS=[
   {t:'n',ask:'f=400, centre (320,240), point (2,1,8). Give the pixel (u, v).',fields:[['u','u'],['v','v']],ans:[420,290],
     line:v=>`(u, v) = (420, 290)`,hints:['u = f·Xc/Zc + cx.','400·2/8+320 = 420.','v = 400·1/8+240 = 290.'],diag:v=>approx(v[0],400*2+320)?'Divide by depth 8 first.':(approx(v[0],100)?'Add the centre (320,240).':null),
     regen:()=>{const X=[1,2,-1,3][(Math.random()*4)|0],Y=[1,2,-2][(Math.random()*3)|0],Z=[4,8,10][(Math.random()*3)|0];
-      return{ask:`f=400, centre (320,240), point (${X},${Y},${Z}). Pixel (u, v)?`,ans:[400*X/Z+320,400*Y/Z+240],fields:[['u','u'],['v','v']],line:v=>`(u,v)=(${fmt(400*X/Z+320)}, ${fmt(400*Y/Z+240)})`};}}]},
+      return{ask:`f=400, centre (320,240), point (${X},${Y},${Z}). Pixel (u, v)?`,ans:[400*X/Z+320,400*Y/Z+240],fields:[['u','u'],['v','v']],line:v=>`(u,v)=(${fmt(400*X/Z+320)}, ${fmt(400*Y/Z+240)})`};}},
+  say('Extra — the order of the three moves.'),
+  {t:'m',ask:'In u = f·Xc/Zc + cx, which step happens LAST?',opts:['divide by depth','multiply by f','add the centre cx'],correct:2,
+    hints:['Like Celsius → Fahrenheit: multiply, then add.','Scaling comes before the shift.','Add the centre last.'],diag:['That is first.','That is the middle step.',null]},
+  {t:'n',ask:'f = 200, centre (100,100), point (3, −1, 6). Give the pixel (u, v).',fields:[['u','u'],['v','v']],ans:[200,66.67],
+    line:v=>`u = 200·3/6+100 = 200 ; v = 200·(−1)/6+100 ≈ 66.67`,hints:['u = f·Xc/Zc + cx — divide by depth 6 first.','200·3/6 = 100, then +100 = 200.','v = 200·(−1)/6 + 100 ≈ 66.67.'],diag:v=>approx(v[0],700)?'Divide by the depth 6 first: 200·3/6, not 200·3.':null}]},
 
 {id:'5.2',mod:5,n:'5.2',title:'K as a grid',sub:'Read f and the centre straight off',diagram:'pixels',
  story:`The three moves pack into one tidy upper-triangular matrix K. Its top-left two entries are the focal length, and the top of the last column is the principal point (cx, cy). Multiplying K by a camera point and then dividing by the third number does exactly the divide-scale-shift. Because K is so regular, you can read the focal length and centre straight off the grid — a common first part of exam questions.`,
@@ -1139,9 +1207,14 @@ const LESSONS=[
     line:v=>`f = 400, (cx,cy) = (320, 240)`,hints:['f top-left; centre top of last column.','f = 400.','cx=320, cy=240.'],diag:v=>approx(v[0],320)?'That is the centre. f is the top-left 400.':null},
   say('Alone — project a point.'),
   {t:'n',ask:'Same K, point (−1, 2, 4). Give the pixel (u, v).',fields:[['u','u'],['v','v']],ans:[220,440],
-    line:v=>`u = 400·(−1)/4+320 = 220; v = 400·2/4+240 = 440`,hints:['u = f·Xc/Zc + cx.','400·(−1)/4+320 = 220.','v = 400·2/4+240 = 440.'],diag:v=>approx(v[0],-100+320)&&false?null:(approx(v[1],40)?'v = 400·2/4 = 200, then +240 = 440.':null)}]},
+    line:v=>`u = 400·(−1)/4+320 = 220; v = 400·2/4+240 = 440`,hints:['u = f·Xc/Zc + cx.','400·(−1)/4+320 = 220.','v = 400·2/4+240 = 440.'],diag:v=>approx(v[0],-100+320)&&false?null:(approx(v[1],40)?'v = 400·2/4 = 200, then +240 = 440.':null)},
+  say('Extra — what doubling f does.'),
+  {t:'m',ask:'If f doubles (same point and centre), a point that is off-centre moves…',opts:['toward the centre','twice as far from the centre','does not move'],correct:1,
+    hints:['The offset is f·X/Z.','Double f → double the offset.','Twice as far from the centre.'],diag:['Opposite — bigger f pushes it out.',null,'The offset scales with f.']},
+  {t:'n',ask:'Read f, cx, cy off K rows (250 0 150), (0 250 150), (0 0 1).',fields:[['f','f'],['x','cx'],['y','cy']],ans:[250,150,150],
+    line:v=>`f = 250, (cx, cy) = (150, 150)`,hints:['f top-left, centre = top of last column.','f = 250.','(150, 150).'],diag:v=>approx(v[0],150)?'That is the centre; f is the top-left 250.':null}]},
 
-{id:'5.3',mod:5,n:'5.3',title:'General K: fx, fy, skew',sub:'Pixels that are not square',diagram:null,
+{id:'5.3',mod:5,n:'5.3',title:'General K: fx, fy, skew',sub:'Pixels that are not square',diagram:'generalK',
  story:`Real sensors are not perfectly square, so the general K allows a different scale in x and y, called αx and αy (also fx, fy). There is also a skew term s for the rare case of non-rectangular pixels; it is almost always zero. The focal length in pixels equals the focal length in millimetres divided by the pixel size, which is why fx and fy can differ. With skew, K has 5 degrees of freedom; without it, 4.`,
  worked:`<div class="work"><div class="line">αx = f·mx,  αy = f·my   (mx, my = pixels per unit)</div><div class="line">x₀ = mx·px,  y₀ = my·py</div><div class="line">f(pixels) = f(mm) / pixel size</div><div class="res">DOF: 5 with skew, 4 without</div></div>`,
  formula:{grid:`${MX([['αx','s','x₀'],['0','αy','y₀'],['0','0','1']],{cap:'general K (skew s), 5 DOF'})}`,
@@ -1155,7 +1228,7 @@ const LESSONS=[
   {t:'n',ask:'f = 8 mm, pixel size 0.02 mm. Focal length in pixels?',fields:[['v','px']],ans:[400],
     line:v=>`f(px) = 8 / 0.02 = ${fmt(v[0])}`,hints:['Divide mm by pixel size.','8 / 0.02.','400.'],diag:v=>approx(v[0],0.16)?'Divide, do not multiply: 8 / 0.02 = 400.':null}]},
 
-{id:'5.4',mod:5,n:'5.4',title:'Intrinsic vs extrinsic',sub:'What changes when the camera moves or zooms',diagram:null,
+{id:'5.4',mod:5,n:'5.4',title:'Intrinsic vs extrinsic',sub:'What changes when the camera moves or zooms',diagram:'intvsext',
  story:`Keep the two halves of the camera straight. Intrinsics K are inside the camera — the lens and sensor — and they change only when you zoom or swap lenses. Extrinsics [R|t] are outside — where the camera stands and how it is aimed — and they change whenever the camera moves. Walk across the room: extrinsics change, intrinsics stay. Zoom in without moving: intrinsics change, extrinsics stay. The full camera multiplies the two together.`,
  worked:`<div class="work"><div class="line">move the camera → R, t change ; K unchanged</div><div class="line">zoom (change f) → K changes ; R, t unchanged</div><div class="res">full camera P = K · [R | t]</div></div>`,
  formula:{grid:`<p>Intrinsic K: lens + sensor (f, centre, skew). Extrinsic [R|t]: pose (where and how aimed).</p>`,
@@ -1355,7 +1428,7 @@ const LESSONS=[
     hints:['P is the ideal model.','No distortion.','Separate step.'],diag:['No, separate.',null,'Neither kind.']}]},
 
 /* ---------- MODULE 8 ---------- */
-{id:'8.1',mod:8,n:'8.1',title:'“Explain” drills',sub:'Short written answers, keyword-checked',diagram:null,
+{id:'8.1',mod:8,n:'8.1',title:'“Explain” drills',sub:'Short written answers, keyword-checked',diagram:'conceptmap',
  story:`Graduate exams give marks for clear reasoning, not just numbers. These drills ask the "why" questions in plain words. Type a short answer; it is checked for the key ideas and you get a model answer to compare. Aim for one or two sentences that name the right concept. Treat the model answers as the exact phrasing an examiner wants to see.`,
  worked:`<div class="work"><div class="line">Marks come from naming the right idea clearly.</div><div class="res">Keep each answer to 1–2 precise sentences.</div></div>`,
  formula:{grid:`<p>No formula — these build the written half of your marks.</p>`,symbols:[['keyword check','your answer must contain the key idea'],['model answer','the examiner-ready phrasing']]},
@@ -1380,7 +1453,13 @@ const LESSONS=[
   {t:'ex',ask:'How do you test whether a matrix is a valid rotation?',keywords:['orthonormal','length 1','unit','perpendicular','rᵀr','r^t r','transpose','det','determinant'],need:2,
     model:'Check the rows are orthonormal (RᵀR = I: length 1 and perpendicular) and det R = +1.'},
   {t:'ex',ask:'Why does calibration need at least 6 points?',keywords:['11','eleven','two','2 equation','unknown','scale'],need:2,
-    model:'P has 11 unknowns (up to scale) and each point gives 2 equations, so you need at least 6 points (12 equations).'}]},
+    model:'P has 11 unknowns (up to scale) and each point gives 2 equations, so you need at least 6 points (12 equations).'},
+  {t:'ex',ask:'Why is the pixel origin at the top-left with v pointing down?',keywords:['row','top','store','down','stored','raster','scan'],need:1,
+    model:'Images are stored row by row from the top, so the row index v grows downward and (0,0) is the top-left corner.'},
+  {t:'ex',ask:'What does the skew term s in K represent?',keywords:['non-rect','not perpendicular','slant','skew','axes','rare','zero'],need:1,
+    model:'Skew models image axes that are not perpendicular (non-rectangular pixels); it is almost always zero.'},
+  {t:'ex',ask:'What is a vanishing point?',keywords:['parallel','meet','direction','infinity','converge'],need:1,
+    model:'The image point where parallel world lines appear to meet — the image of their shared direction (a point at infinity).'}]},
 
 {id:'8.2',mod:8,n:'8.2',title:'Full mock exam',sub:'Two 20-mark questions, 40-minute timer',diagram:null,special:'exam',
  story:`This is the real thing: two exam-style questions worth about twenty marks each, with a forty-minute timer, laid out like paper. Work each part, then reveal the full marked solution. Question 1 is the professor's sample midterm; Question 2 mixes rotation, projection, vanishing points and calibration. Keep your calculator handy and show every line.`,
