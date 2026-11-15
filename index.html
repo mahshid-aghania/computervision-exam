@@ -650,6 +650,111 @@ DIAGRAMS.distort=(box)=>{
   $('#dsk',box).oninput=draw;draw();
 };
 
+/* (2.5) affine maps keep lines straight */
+DIAGRAMS.affine=(box)=>{
+  box.innerHTML=`<svg viewBox="0 0 520 300" id="af"></svg>
+   <div class="controls">${ctl('afA','rotate',-60,60,5,20)}${ctl('afS','scale',0.5,1.8,0.1,1.2)}${ctl('afH','shear',-0.8,0.8,0.1,0.3)}</div>
+   <div class="readout" id="afo"></div>`;
+  const mm=(A,B)=>[[A[0][0]*B[0][0]+A[0][1]*B[1][0],A[0][0]*B[0][1]+A[0][1]*B[1][1]],[A[1][0]*B[0][0]+A[1][1]*B[1][0],A[1][0]*B[0][1]+A[1][1]*B[1][1]]];
+  const draw=()=>{const a=rad(+$('#afA').value),s=+$('#afS').value,h=+$('#afH').value;
+    $('#afAo').textContent=(+$('#afA').value)+'°';$('#afSo').textContent=s;$('#afHo').textContent=h;
+    const p0=[-3,-1],d=[6,3];const pts=[];for(let tt=0;tt<=1.0001;tt+=0.1)pts.push([p0[0]+d[0]*tt,p0[1]+d[1]*tt]);
+    const sh=[[1,h],[0,1]],sc=[[s,0],[0,s]],ro=[[Math.cos(a),-Math.sin(a)],[Math.sin(a),Math.cos(a)]];
+    const A=mm(ro,mm(sc,sh)),t=[1,0.5];
+    const ap=pts.map(p=>[A[0][0]*p[0]+A[0][1]*p[1]+t[0],A[1][0]*p[0]+A[1][1]*p[1]+t[1]]);
+    const ox=250,oy=160,SC=28,xy=p=>[ox+p[0]*SC,oy-p[1]*SC];
+    const poly=arr=>arr.map(p=>{const q=xy(p);return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' ');
+    $('#af').innerHTML=`<line x1="20" y1="${oy}" x2="500" y2="${oy}" stroke="var(--world)"/><line x1="${ox}" y1="20" x2="${ox}" y2="290" stroke="var(--world)"/>
+      <polyline points="${poly(pts)}" fill="none" stroke="var(--world)" stroke-width="2" stroke-dasharray="5 4"/>
+      <polyline points="${poly(ap)}" fill="none" stroke="var(--pt)" stroke-width="3"/>
+      ${pts.map(p=>{const q=xy(p);return `<circle cx="${q[0]}" cy="${q[1]}" r="2.5" fill="var(--world)"/>`;}).join('')}
+      ${ap.map(p=>{const q=xy(p);return `<circle cx="${q[0]}" cy="${q[1]}" r="3.5" fill="var(--pt)"/>`;}).join('')}`;
+    $('#afo').innerHTML=`<span style="width:100%" class="plain">Grey dashed = the original straight line. Orange = after x' = A·x + t (rotate × scale × shear, then shift). It is <b>still straight</b>, and evenly spaced dots stay evenly spaced — affine maps never bend a line.</span>`;};
+  $$('#afA,#afS,#afH',box).forEach(i=>i.oninput=draw);draw();
+};
+
+/* (3.4) is it a valid rotation? */
+DIAGRAMS.rotcheck=(box)=>{
+  box.innerHTML=`<svg viewBox="0 0 320 300" id="rc" style="max-width:360px;margin:0 auto"></svg>
+   <div class="controls">${ctl('rcA1','row 1 angle',0,350,10,0)}${ctl('rcA2','row 2 angle',0,350,10,90)}${ctl('rcL2','row 2 length',0.4,1.8,0.1,1)}</div>
+   <div class="readout" id="rco" style="display:block"></div>`;
+  const draw=()=>{const a1=rad(+$('#rcA1').value),a2=rad(+$('#rcA2').value),l2=+$('#rcL2').value;
+    $('#rcA1o').textContent=(+$('#rcA1').value)+'°';$('#rcA2o').textContent=(+$('#rcA2').value)+'°';$('#rcL2o').textContent=l2;
+    const r1=[Math.cos(a1),Math.sin(a1)],r2=[l2*Math.cos(a2),l2*Math.sin(a2)];
+    const dot=r1[0]*r2[0]+r1[1]*r2[1],len2=Math.hypot(r2[0],r2[1]);
+    const ok=Math.abs(len2-1)<0.06&&Math.abs(dot)<0.06;const ox=160,oy=160,SC=90;
+    $('#rc').innerHTML=`<line x1="20" y1="${oy}" x2="300" y2="${oy}" stroke="var(--world)"/><line x1="${ox}" y1="20" x2="${ox}" y2="290" stroke="var(--world)"/>
+      <line x1="${ox}" y1="${oy}" x2="${ox+r1[0]*SC}" y2="${oy-r1[1]*SC}" stroke="var(--xr)" stroke-width="4"/>
+      <line x1="${ox}" y1="${oy}" x2="${ox+r2[0]*SC}" y2="${oy-r2[1]*SC}" stroke="var(--zb)" stroke-width="4"/>
+      <text x="${ox+r1[0]*SC}" y="${oy-r1[1]*SC-6}" font-size="12" fill="var(--xr)">row 1</text>
+      <text x="${ox+r2[0]*SC}" y="${oy-r2[1]*SC-6}" font-size="12" fill="var(--zb)">row 2</text>`;
+    $('#rco').innerHTML=`<div class="mono">|row 1| = 1.00  ·  |row 2| = ${fmt(len2)}  ·  row1·row2 = ${fmt(dot)}</div>
+      <div style="margin-top:6px;font-weight:700;color:${ok?'var(--good)':'var(--bad)'}">${ok?'✓ Valid rotation: both rows unit length and perpendicular (90° apart).':'✗ Not a rotation: you need |row 2| = 1 and row1·row2 = 0 (perpendicular).'}</div>`;};
+  $$('#rcA1,#rcA2,#rcL2',box).forEach(i=>i.oninput=draw);draw();
+};
+
+/* (3.5) fix a broken rotation with SVD */
+DIAGRAMS.svdfix=(box)=>{
+  box.innerHTML=`<svg viewBox="0 0 320 300" id="sv" style="max-width:360px;margin:0 auto"></svg>
+   <div class="controls">${ctl('svA','row 2 angle',40,140,5,70)}${ctl('svL','row 2 length',0.5,1.6,0.1,1.3)}</div>
+   <div class="prow"><button class="btn sm" id="svFix">✨ Fix with SVD → U Vᵀ</button><button class="btn sm ghost" id="svReset">reset</button></div>
+   <div class="readout" id="svo" style="display:block"></div>`;
+  let fixed=false;
+  const draw=()=>{const a2=rad(+$('#svA').value),l2=+$('#svL').value;$('#svAo').textContent=(+$('#svA').value)+'°';$('#svLo').textContent=l2;
+    const r1=[1,0],r2=[l2*Math.cos(a2),l2*Math.sin(a2)];const ox=100,oy=170,SC=90;let g='';
+    if(fixed){const sign=r2[1]>=0?1:-1;g=`<line x1="${ox}" y1="${oy}" x2="${ox+SC}" y2="${oy}" stroke="var(--good)" stroke-width="5"/>
+      <line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy-sign*SC}" stroke="var(--good)" stroke-width="5"/>`;}
+    $('#sv').innerHTML=`<line x1="20" y1="${oy}" x2="300" y2="${oy}" stroke="var(--world)"/><line x1="${ox}" y1="20" x2="${ox}" y2="290" stroke="var(--world)"/>
+      <line x1="${ox}" y1="${oy}" x2="${ox+r1[0]*SC}" y2="${oy-r1[1]*SC}" stroke="var(--xr)" stroke-width="3" opacity="${fixed?.3:1}"/>
+      <line x1="${ox}" y1="${oy}" x2="${ox+r2[0]*SC}" y2="${oy-r2[1]*SC}" stroke="var(--zb)" stroke-width="3" opacity="${fixed?.3:1}"/>${g}`;
+    const len2=Math.hypot(r2[0],r2[1]),dot=r1[0]*r2[0]+r1[1]*r2[1];
+    $('#svo').innerHTML=`<div class="mono">before:  |row 2| = ${fmt(len2)},  dot = ${fmt(dot)}  ${Math.abs(len2-1)<0.05&&Math.abs(dot)<0.05?'':'← broken'}</div>
+      ${fixed?'<div style="color:var(--good);font-weight:700;margin-top:6px">✓ Snapped to the nearest true rotation (green): unit length, perpendicular. That is R = U Vᵀ.</div>':'<div class="plain" style="margin-top:6px">Red/blue rows are not a rotation. Press Fix: SVD writes R = U S Vᵀ, we drop the stretch S and keep U Vᵀ.</div>'}`;};
+  $$('#svA,#svL',box).forEach(i=>i.oninput=()=>{fixed=false;draw();});
+  $('#svFix',box).onclick=()=>{fixed=true;draw();};$('#svReset',box).onclick=()=>{fixed=false;draw();};draw();
+};
+
+/* (4.2) the extrinsic matrix [R|t], 6 DOF */
+DIAGRAMS.extrinsic6=(box)=>{
+  box.innerHTML=`<div class="readout" style="display:block"><div class="plain" style="text-align:center">Turn the 3 rotation dials and move the camera — the 6 numbers of pose fill [R | t]. (t = −R·C.)</div></div>
+   <div class="controls">${ctl('exrx','rot x',-60,60,15,0)}${ctl('exry','rot y',-60,60,15,30)}${ctl('exrz','rot z',-60,60,15,0)}${ctl('exCx','Cx',-3,3,1,0)}${ctl('exCy','Cy',-3,3,1,0)}${ctl('exCz','Cz',-3,3,1,2)}</div>
+   <div id="exg" style="text-align:center;margin-top:12px;overflow-x:auto"></div>`;
+  const Rx=a=>[[1,0,0],[0,Math.cos(a),-Math.sin(a)],[0,Math.sin(a),Math.cos(a)]];
+  const Ry=a=>[[Math.cos(a),0,Math.sin(a)],[0,1,0],[-Math.sin(a),0,Math.cos(a)]];
+  const Rz=a=>[[Math.cos(a),-Math.sin(a),0],[Math.sin(a),Math.cos(a),0],[0,0,1]];
+  const mm=(A,B)=>A.map((r,i)=>B[0].map((_,j)=>r.reduce((s,_,k)=>s+A[i][k]*B[k][j],0)));
+  const draw=()=>{const rx=rad(+$('#exrx').value),ry=rad(+$('#exry').value),rz=rad(+$('#exrz').value);
+    ['exrx','exry','exrz'].forEach(id=>$('#'+id+'o').textContent=$('#'+id).value+'°');
+    ['exCx','exCy','exCz'].forEach(id=>$('#'+id+'o').textContent=$('#'+id).value);
+    const C=[+$('#exCx').value,+$('#exCy').value,+$('#exCz').value];
+    const R=mm(mm(Rz(rz),Ry(ry)),Rx(rx));
+    const t=R.map(row=>-(row[0]*C[0]+row[1]*C[1]+row[2]*C[2]));
+    const rows=R.map((row,i)=>[...row.map(fmt),'|',fmt(t[i])]);
+    $('#exg').innerHTML=MX(rows,{colors:['var(--xr)','var(--yg)','var(--zb)'],cap:'[ R | t ] — 3 from the rotation + 3 from the position = 6 DOF'});};
+  $$('#exrx,#exry,#exrz,#exCx,#exCy,#exCz',box).forEach(i=>i.oninput=draw);draw();
+};
+
+/* (4.3) forward-and-back round trip */
+DIAGRAMS.roundtrip=(box)=>{
+  box.innerHTML=`<svg viewBox="0 0 520 220" id="rp"></svg>
+   <div class="controls">${ctl('rpT','camera turn',0,350,10,90)}${ctl('rpCx','Cx',-3,3,1,1)}${ctl('rpCy','Cy',-3,3,1,0)}</div>
+   <div class="readout" id="rpo" style="display:block"></div>`;
+  const draw=()=>{const t=rad(+$('#rpT').value),Cx=+$('#rpCx').value,Cy=+$('#rpCy').value;
+    $('#rpTo').textContent=(+$('#rpT').value)+'°';$('#rpCxo').textContent=Cx;$('#rpCyo').textContent=Cy;
+    const R=[[Math.cos(t),Math.sin(t)],[-Math.sin(t),Math.cos(t)]];
+    const RC=[R[0][0]*Cx+R[0][1]*Cy,R[1][0]*Cx+R[1][1]*Cy],tt=[-RC[0],-RC[1]];
+    const Crec=[-(R[0][0]*tt[0]+R[1][0]*tt[1]),-(R[0][1]*tt[0]+R[1][1]*tt[1])];
+    const ok=approx(Crec[0],Cx,0.001)&&approx(Crec[1],Cy,0.001);const ox=130,oy=120,SC=28;
+    $('#rp').innerHTML=`<rect x="20" y="20" width="220" height="190" rx="8" fill="var(--surface2)" stroke="var(--line)"/>
+      <text x="130" y="38" font-size="11" text-anchor="middle" fill="var(--muted)">world map</text>
+      <circle cx="${ox+Cx*SC}" cy="${oy-Cy*SC}" r="8" fill="var(--fg)"/>
+      <line x1="${ox+Cx*SC}" y1="${oy-Cy*SC}" x2="${ox+Cx*SC+Math.sin(t)*30}" y2="${oy-Cy*SC-Math.cos(t)*30}" stroke="var(--zb)" stroke-width="3"/>
+      <text x="${ox+Cx*SC}" y="${oy-Cy*SC+24}" font-size="11" text-anchor="middle" fill="var(--muted)">C = (${Cx}, ${Cy})</text>`;
+    $('#rpo').innerHTML=`<div class="mono">forward:  t = −R·C   = (${fmt(tt[0])}, ${fmt(tt[1])})<br>back:     C = −Rᵀ·t  = (${fmt(Crec[0])}, ${fmt(Crec[1])})</div>
+      <div style="margin-top:6px;font-weight:700;color:${ok?'var(--good)':'var(--bad)'}">${ok?'✓ Round-trip matches — Rᵀ undid R and recovered the original C.':'…'}</div>`;};
+  $$('#rpT,#rpCx,#rpCy',box).forEach(i=>i.oninput=draw);draw();
+};
+
 /* ========== MODULES + LESSONS ========== */
 const MODULES=[
  {n:1,title:'The pinhole camera',icon:'📷'},
@@ -757,7 +862,12 @@ const LESSONS=[
     line:v=>`÷ −3 = (${fmt(v[0])}, ${fmt(v[1])}, ${fmt(v[2])})`,hints:['Divide all four by −3.','9/−3 = −3, −24/−3 = 8.','(−3, 8, 1).'],diag:v=>approx(v[0],-3)&&approx(v[1],-8)?'Watch signs: −24 / −3 = +8.':null},
   say('Alone.'),
   {t:'n',ask:'Convert (7, 39, 42, 3).',fields:[['x','X'],['y','Y'],['z','Z']],ans:[7/3,13,14],
-    line:v=>`÷ 3 = (7/3, 13, 14)`,hints:['Divide by 3.','39/3 = 13, 42/3 = 14, 7/3 stays a fraction.','(7/3, 13, 14).'],diag:v=>approx(v[0],7)?'Divide every number by 3.':null}]},
+    line:v=>`÷ 3 = (7/3, 13, 14)`,hints:['Divide by 3.','39/3 = 13, 42/3 = 14, 7/3 stays a fraction.','(7/3, 13, 14).'],diag:v=>approx(v[0],7)?'Divide every number by 3.':null},
+  say('Extra — explain it to yourself.'),
+  {t:'m',ask:'Why is (6, 4, 2) the same point as (3, 2, 1)?',opts:['They are different points','Scaling every coordinate by a non-zero number gives the same point','Only the last number matters'],correct:1,
+    hints:['Think of a ray through the origin.','k·(x,y,w) ≡ (x,y,w) for any k ≠ 0.','(6,4,2) = 2·(3,2,1), so they are identical.'],diag:['They become identical after dividing.',null,'All three coordinates share the scale.']},
+  {t:'n',ask:'Lift the flat point (2, 3) into homogeneous form (his exercise). Give all three numbers.',fields:[['a','x'],['b','y'],['c','w']],ans:[2,3,1],
+    line:v=>`(2,3) → (2, 3, 1)`,hints:['Append a 1.','(x, y) → (x, y, 1).','(2, 3, 1).'],diag:v=>null}]},
 
 {id:'2.2',mod:2,n:'2.2',title:'Points at infinity & vanishing points',sub:'When the last number is 0',diagram:'railway',
  story:`What if the last number is 0? You cannot divide by zero, so there is no ordinary point. Instead, (a, b, 0) stands for a pure <b>direction</b> — a point infinitely far away. These are not a mistake; they are exactly how a photo shows parallel lines meeting at the horizon. The shared direction of the rails is a point at infinity, and its image is the vanishing point. Two parallel world lines meet where their last number is 0.`,
@@ -791,7 +901,12 @@ const LESSONS=[
     line:v=>`(1,2,1)×(4,3,1) = (−1, 3, −5) → −x + 3y − 5 = 0`,hints:['p=(1,2,1), q=(4,3,1).','a = 2·1−1·3 = −1; b = −(1·1−1·4) = 3.','c = 1·3−2·4 = −5. (−1, 3, −5).'],diag:v=>null},
   say('Alone — intersect two lines.'),
   {t:'n',ask:'Meet 3x−y+7=0 and 2x−y+1=0 (lines (3,−1,7) and (2,−1,1)). Give the ordinary point (x, y).',fields:[['x','x'],['y','y']],ans:[-6,-11],
-    line:v=>`(3,−1,7)×(2,−1,1) = (6, 11, −1) ÷ −1 = (−6, −11)`,hints:['Cross the two line vectors, then divide by the last number.','Cross = (6, 11, −1).','÷ −1 → (−6, −11).'],diag:v=>approx(v[0],6)?'Almost — now divide (6,11,−1) by its last number −1.':null}]},
+    line:v=>`(3,−1,7)×(2,−1,1) = (6, 11, −1) ÷ −1 = (−6, −11)`,hints:['Cross the two line vectors, then divide by the last number.','Cross = (6, 11, −1).','÷ −1 → (−6, −11).'],diag:v=>approx(v[0],6)?'Almost — now divide (6,11,−1) by its last number −1.':null},
+  say('Extra — the duality, and parallel lines.'),
+  {t:'m',ask:'Joining two points and meeting two lines both use…',opts:['the dot product','the cross product','matrix inversion'],correct:1,
+    hints:['Same operation, different inputs.','Cross product for both.','l = p×q and x = l₁×l₂.'],diag:['Dot product tests on-a-line (l·p=0).',null,'No inverse needed.']},
+  {t:'n',ask:'Meet the parallel lines 3x−y+7=0 and 3x−y−3=0 (vectors (3,−1,7),(3,−1,−3)): give the cross product (a, b, c).',fields:[['a','a'],['b','b'],['c','c']],ans:[10,30,0],scale:true,
+    line:v=>`(3,−1,7)×(3,−1,−3) = (10, 30, 0) — last number 0 → meet at infinity`,hints:['Use (et−sf, −(dt−rf), ds−re).','a = (−1)(−3)−7(−1) = 10; b = −(3·−3 − 7·3) = 30.','c = 3·−1 − (−1)·3 = 0. The 0 means parallel.'],diag:v=>approx(v[2],0)?null:'The last number should be 0 (they are parallel): c = 3·(−1) − (−1)·3 = 0.'}]},
 
 {id:'2.4',mod:2,n:'2.4',title:'Why bother? The pinhole as one matrix',sub:'Division becomes multiplication',diagram:'pipeline',
  story:`Here is the payoff. The pinhole rule x = fX/Z needs a division, which matrices cannot do on their own. Homogeneous coordinates sneak the division in through the back door: a matrix produces (fX, fY, Z), and the final "divide by the last number" does the perspective divide for free. So the whole pinhole camera becomes one matrix multiply followed by a divide. Translation, which also resisted matrices, becomes a plain multiply too. That is the real reason this chapter lives in homogeneous coordinates.`,
@@ -807,7 +922,7 @@ const LESSONS=[
   {t:'m',ask:'In λ(x,y,1) = P·X, the scale λ equals…',opts:['the focal length','the depth Z','always 1'],correct:1,
     hints:['It is the last number before dividing.','Equals Z.','Depth.'],diag:['f is inside P.',null,'Only after dividing.']}]},
 
-{id:'2.5',mod:2,n:'2.5',title:'Affine maps send lines to lines',sub:'A tiny three-line proof',diagram:null,
+{id:'2.5',mod:2,n:'2.5',title:'Affine maps send lines to lines',sub:'A tiny three-line proof',diagram:'affine',
  story:`An affine map stretches, rotates and shifts: x' = A x + t. A fact the exam likes is that such a map always turns straight lines into straight lines. The proof is three lines long. Take any line as a moving point that slides at a steady rate. Apply the map. Because the map is linear plus a constant, the result also slides at a steady rate — which is again a straight line. No curves can appear. Rotations, scalings, shears and translations are all affine, so they all keep lines straight.`,
  worked:`<div class="work"><div class="line">a line: p(s) = p₀ + s·d   (s slides along direction d)</div><div class="line">apply map: x'(s) = A(p₀ + s·d) + t</div><div class="line">        = (A p₀ + t) + s·(A d)</div><div class="res">= q₀ + s·d'   — a straight line again ✓</div></div>`,
  formula:{grid:`${MX([['1','0','tx'],['0','1','ty'],['0','0','1']],{cap:'translation T (homogeneous)'})}
@@ -842,7 +957,10 @@ const LESSONS=[
   {t:'n',ask:'R rows (0,1),(−1,0), point (0,2). Give X_cam = (right, forward).',fields:[['a','right'],['b','forward']],ans:[2,0],
     line:v=>`X_cam = (${fmt(v[0])}, ${fmt(v[1])})`,hints:['Row 1·point, then row 2·point.','(0,1)·(0,2)=2.','(2, 0).'],diag:v=>approx(v[0],-2)?'You read the columns (transpose). Read ROWS across.':null,
     regen:()=>{const bx=[0,1,2,3][(Math.random()*4)|0],by=[1,2,3][(Math.random()*3)|0];
-      return{ask:`R rows (0,1),(−1,0), point (${bx},${by}). Give X_cam = (right, forward).`,ans:[by,-bx],fields:[['a','right'],['b','forward']],line:v=>`X_cam = (${by}, ${-bx})`};}}]},
+      return{ask:`R rows (0,1),(−1,0), point (${bx},${by}). Give X_cam = (right, forward).`,ans:[by,-bx],fields:[['a','right'],['b','forward']],line:v=>`X_cam = (${by}, ${-bx})`};}},
+  say('Extra — rows vs columns.'),
+  {t:'m',ask:'Computing R·X means…',opts:['dot each COLUMN of R with the point','dot each ROW of R with the point','multiply only matching entries'],correct:1,
+    hints:['Read rows across.','Row 1 · point, then row 2 · point.','Rows, never columns.'],diag:['Columns give the transpose — a different turn.',null,'You must sum the products within each row.']}]},
 
 {id:'3.2',mod:3,n:'3.2',title:'From an angle — and the transpose trap',sub:'Camera-turn vs point-turn',diagram:'rotmap',
  story:`If the camera is turned by an angle t, its right arrow becomes (cos t, sin t) and its forward arrow becomes (−sin t, cos t) — those are the rows of R. There is a famous trap here. The matrix that <b>rotates a point</b> is the transpose of the matrix that <b>expresses a point in a turned camera</b>. They look almost the same but swap the sign of the sines across the diagonal. Always ask: am I turning the point, or turning the camera? The two undo each other.`,
@@ -881,7 +999,7 @@ const LESSONS=[
   {t:'m',ask:'Rotations in 3D…',opts:['always commute','do not commute — order matters','only commute if det = 1'],correct:1,
     hints:['Right-then-up vs up-then-right.','Different results.','Order matters.'],diag:['They do not.',null,'det is +1 either way.']}]},
 
-{id:'3.4',mod:3,n:'3.4',title:'Is it a valid rotation?',sub:'RᵀR = I, det = +1',diagram:null,
+{id:'3.4',mod:3,n:'3.4',title:'Is it a valid rotation?',sub:'RᵀR = I, det = +1',diagram:'rotcheck',
  story:`Not every table of numbers is a rotation. A real rotation only turns — it never stretches or flips. That means every row has length exactly 1, and the rows are at right angles to each other. Written compactly: R transpose times R is the identity, and the determinant is +1 (a determinant of −1 would be a mirror flip). A quick exam check: measure each row's length and test two rows for perpendicularity with a dot product. The inverse of a rotation is just its transpose, and it has only 3 degrees of freedom.`,
  worked:`<p>Is rows (1, 0), (1, 1) a rotation?</p>
   <div class="work"><div class="line">row 1 length = √(1²+0²) = 1 ✓</div><div class="line">row 2 length = √(1²+1²) = √2 ✗  (not 1)</div><div class="line">row1 · row2 = 1·1 + 0·1 = 1 ✗  (not 0, not perpendicular)</div><div class="res">NOT a valid rotation</div></div>`,
@@ -899,7 +1017,7 @@ const LESSONS=[
   {t:'m',ask:'So rows (1,0),(1,1) — valid rotation?',opts:['Yes','No: row 2 length √2 and rows not perpendicular','No: determinant is 0'],correct:1,
     hints:['Two tests failed.','Length and perpendicularity.','No.'],diag:['Both tests fail.',null,'det is 1 here; that is not the reason.']}]},
 
-{id:'3.5',mod:3,n:'3.5',title:'Fixing a broken rotation with SVD',sub:'The nearest true rotation',diagram:null,
+{id:'3.5',mod:3,n:'3.5',title:'Fixing a broken rotation with SVD',sub:'The nearest true rotation',diagram:'svdfix',
  story:`Measured or estimated rotations drift: rounding makes the rows not quite unit length or not quite perpendicular. The clean repair uses the SVD. Factor the near-rotation into three pieces, throw away the middle stretching piece, and multiply the two orthogonal pieces back together. The result is the closest genuine rotation. It is a one-line fix that appears whenever rotations come from noisy data or least-squares.`,
  worked:`<div class="work"><div class="line">given a near-rotation R (rows slightly off)</div><div class="line">SVD:  R = U S Vᵀ</div><div class="line">drop the stretch S (set it to I)</div><div class="res">R_fixed = U Vᵀ   (a true rotation)</div></div>`,
  formula:{grid:`${MX([['R','=','U S Vᵀ'],['R_fix','=','U Vᵀ']],{cap:'nearest orthonormal matrix'})}`,
@@ -932,9 +1050,12 @@ const LESSONS=[
     line:v=>`P−C = (0,3); X_cam = ((0,1)·(0,3), (−1,0)·(0,3)) = (3, 0)`,hints:['First P − C = (0, 3).','Then dot each row with (0,3).','(3, 0).'],diag:v=>approx(v[0],2)?'Do P − C first = (0,3), then rotate.':null},
   say('Alone.'),
   {t:'n',ask:'R rows (0,1),(−1,0), C = (1,0). Find t.',fields:[['a','t₁'],['b','t₂']],ans:[0,1],
-    line:v=>`t = −R·C = (0, 1)`,hints:['R·C then negate.','R·C = (0,−1).','t = (0,1).'],diag:v=>approx(v[1],-1)?'Minus sign: t = −R·C.':null}]},
+    line:v=>`t = −R·C = (0, 1)`,hints:['R·C then negate.','R·C = (0,−1).','t = (0,1).'],diag:v=>approx(v[1],-1)?'Minus sign: t = −R·C.':null},
+  say('Extra — why the minus?'),
+  {t:'m',ask:'The minus in t = −R·C is there because…',opts:['t is the camera position','we move the world so the camera sits at the origin, then rotate','rotations always flip sign'],correct:1,
+    hints:['Start from X_cam = R(X − C).','Expanding gives R·X − R·C.','The leftover constant is t = −R·C.'],diag:['That is C, not t.',null,'Rotations do not flip sign on their own.']}]},
 
-{id:'4.2',mod:4,n:'4.2',title:'The extrinsic matrix [R | t]',sub:'Six numbers of pose',diagram:null,
+{id:'4.2',mod:4,n:'4.2',title:'The extrinsic matrix [R | t]',sub:'Six numbers of pose',diagram:'extrinsic6',
  story:`Stick the rotation and the translation side by side and you get a 3×4 block called the extrinsic matrix. It is the camera's pose: three numbers say how it is turned and three say where it stands. Together that is six degrees of freedom. The rotation part always obeys the rotation rules; the translation part is free. This block is half of the full camera — the other half is the intrinsics K coming next.`,
  worked:`<div class="work"><div class="line">[ R | t ] is 3 rows, 4 columns</div><div class="line">first 3 columns = R (orientation, 3 DOF)</div><div class="res">last column = t (position, 3 DOF) → 6 DOF total</div></div>`,
  formula:{grid:`${MX([['r₁₁','r₁₂','r₁₃','t₁'],['r₂₁','r₂₂','r₂₃','t₂'],['r₃₁','r₃₂','r₃₃','t₃']],{cap:'[R | t] — extrinsic parameters, 6 DOF'})}`,
@@ -948,7 +1069,7 @@ const LESSONS=[
   {t:'m',ask:'The last column of [R|t] is…',opts:['the camera position C','the translation t','the focal length'],correct:1,
     hints:['t = −RC, not C.','It is t.','The shift.'],diag:['C is recovered separately.',null,'f is in K.']}]},
 
-{id:'4.3',mod:4,n:'4.3',title:'Going backwards: C = −Rᵀt',sub:'Recover the camera position',diagram:null,
+{id:'4.3',mod:4,n:'4.3',title:'Going backwards: C = −Rᵀt',sub:'Recover the camera position',diagram:'roundtrip',
  story:`Given R and t, where is the camera? Undo the formula t = −R·C. Multiply both sides by R transpose (which is R's inverse) and flip the sign: C = −Rᵀ·t. The same inverse-rotation also sends a camera-frame point back into the world: X_world = Rᵀ(X_cam − t). These reverse steps are how you check an answer or recover the pose from a projection matrix.`,
  worked:`<p>R rows (0,1),(−1,0), t = (0,1).</p>
   <div class="work"><div class="line">Rᵀ rows = columns of R = (0,−1),(1,0)</div><div class="line">Rᵀ·t = (0·0 + (−1)·1, 1·0 + 0·1) = (−1, 0)</div><div class="res">C = −Rᵀ·t = (1, 0) ✓</div></div>`,
