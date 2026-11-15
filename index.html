@@ -862,7 +862,7 @@ const say=h=>({t:'say',h});
 const LESSONS=[
 /* ---------- MODULE 1 ---------- */
 {id:'1.1',mod:1,n:'1.1',title:'The pinhole, image plane & focal length',sub:'The five words every exam uses',diagram:'pinhole',
- story:`A pinhole camera is a dark box with one tiny hole. Light from the scene passes straight through the hole and lands on the back wall, making a picture. The hole is the <b>camera centre</b>. The back wall is the <b>image plane</b>. The straight line out of the hole, square to the wall, is the <b>optical (principal) axis</b>. Where that axis hits the wall is the <b>principal point</b>. The distance from the hole to the wall is the <b>focal length f</b>. Everything else in this chapter is built on these five words.`,
+ story:`Let's begin gently, with nothing more than a box and a pinhole — no formulas in sight yet. Imagine a dark box with one tiny hole: light from the scene slips through and paints a picture on the back wall. That little hole is what we call the <b>camera centre</b>, and the back wall is the <b>image plane</b>. The straight line that leaves the hole at a right angle to the wall is the <b>optical axis</b>, and the spot where it meets the wall is the <b>principal point</b>. The distance from the hole to the wall is the <b>focal length</b>, f. Sit with these five words for a moment — everything else in this chapter grows from them, so there is no need to rush.`,
  worked:`<div class="work"><div class="line">camera centre C .... the pinhole (where all rays cross)</div><div class="line">image plane ........ the wall, at distance f behind C</div><div class="line">optical axis ....... straight line C → wall, perpendicular to it</div><div class="line">principal point .... where the axis meets the wall</div><div class="res">focal length f ..... distance from C to the wall</div></div>`,
  formula:{grid:`<p>No formula yet — just the picture. Next lesson turns it into numbers.</p>`,symbols:[['C','the camera centre (the pinhole); all light rays pass through it'],['f','focal length: distance from C to the image plane'],['axis','the optical/principal axis, perpendicular to the image plane']]},
  why:['Light travels in straight lines.','Only rays passing through the single tiny hole reach the wall.','So each wall point is lit by exactly one scene ray — a sharp picture.','Make the hole bigger and many rays overlap: blurry. Keep it tiny: sharp but dim (why real cameras add a lens).'],
@@ -878,7 +878,7 @@ const LESSONS=[
     hints:['Follow the axis to the wall.','Axis ∩ wall.','That meeting point is the principal point.'],diag:[null,'The object is in the world, not on the image.','f is a single fixed distance.']}]},
 
 {id:'1.2',mod:1,n:'1.2',title:'Similar triangles: x = fX/Z',sub:'The master equation, derived',diagram:'pinhole',
- story:`Picture the side view: a tree of height Y standing a distance Z in front of the hole, and the image plane a distance f behind it. The treetop ray goes through the hole and lands on the wall. This makes two triangles that share the hole — a big one out in the world and a small one inside the box. Triangles with the same angles have sides in the same ratio. So the image height over f equals the real height over Z. Rearrange and you get the single most important line in the chapter.`,
+ story:`Now let's turn that picture into a small piece of arithmetic, slowly and together. Picture the scene from the side: a tree of height Y standing a distance Z away, with the wall a distance f behind the hole. A ray from the treetop passes through the hole and lands on the wall, and in doing so it draws two triangles that share the very same corner. Here is the lovely part — triangles with the same angles always have their sides in the same proportions. So the little image height compared to f is exactly the real height compared to Z. Rearrange that gently and you arrive at the one equation we will lean on all chapter long — and notice that you derived it yourself.`,
  worked:`<p>Tree <span class="pt">Y = 6</span> tall, <span class="world">Z = 12</span> away, <kbd class="t">f = 2</kbd>.</p>
   <div class="work"><div class="line">similar triangles:  y / f  =  Y / Z</div><div class="line">y = f · Y / Z</div><div class="line">  = 2 · 6 / 12</div><div class="res">  = 1</div></div>
   <p class="plain">Real tree 6 tall, 12 away → image just 1 tall (and upside-down).</p>`,
@@ -902,7 +902,7 @@ const LESSONS=[
       return{ask:`Tree ${Y} m tall, ${Z} m away, f = ${f} m. Image height?`,ans:[f*Y/Z],fields:[['v','y (m)']],line:v=>`y = ${f}·${Y}/${Z} = ${fmt(v[0])} m`};}}]},
 
 {id:'1.3',mod:1,n:'1.3',title:'What perspective does to the world',sub:'Five properties the exam loves',diagram:'railway',
- story:`Perspective is honest about some things and a liar about others. Things far away look smaller, because depth Z sits on the bottom of the fraction. Straight lines stay straight. But parallel lines in the world stop being parallel on the photo — they lean together and meet at a vanishing point. Lengths and angles are not kept: a square tile becomes a slanted shape. Worst of all, depth is thrown away: a single pixel does not know how far along its ray the real point sat. Drag the railway to see parallel rails meet.`,
+ story:`Perspective is a bit of a trickster, honest about some things and misleading about others, so let's get to know its habits. Things far away look smaller, simply because depth sits underneath in our fraction. Straight lines stay reassuringly straight. But parallel lines quietly lean together and meet at a vanishing point, and a square tile can come out looking slanted, because lengths and angles are not preserved. The hardest truth to accept is that depth is thrown away entirely: a single pixel cannot tell you how far along its ray the real point sat. Drag the railway tracks and watch two lines that never meet in life shake hands on the photo.`,
  worked:`<div class="work"><div class="line">far = small ...... Z on the bottom of f·X/Z</div><div class="line">lines → lines .... straight stays straight</div><div class="line">parallels meet ... at a vanishing point</div><div class="line">angles/lengths ... NOT preserved</div><div class="res">depth lost ....... one pixel = a whole ray of 3D points</div></div>`,
  formula:{grid:`<p>These are properties, not a formula. The key one: a pixel (u,v) fixes a <b>ray</b> from the camera, not a point. Depth is gone.</p>`,
    symbols:[['vanishing point','where images of parallel world lines meet'],['ray','all 3D points that land on one pixel'],['horizon','where vanishing points of lines in one plane lie']]},
@@ -919,7 +919,7 @@ const LESSONS=[
     hints:['Two of these survive.','Squares become slanted.','Angles are not preserved.'],diag:['Straight stays straight.',null,'That is always true.']}]},
 
 {id:'1.4',mod:1,n:'1.4',title:'Field of view',sub:'How much the camera sees',diagram:'fov',
- story:`The field of view is the angle of the cone the camera can see. It depends on two things: how wide the sensor is, and the focal length. A long lens (big f) squeezes the cone narrow — that is zooming in. A short lens (small f) opens the cone wide. The half-angle is the arctangent of half the sensor width over f, so the full field of view is twice that. Slide f and watch the cone breathe.`,
+ story:`Let's talk about how much of the world the camera can take in — its field of view. Think of it as the opening angle of a cone spreading out from the lens. Two things set that angle: how wide the sensor is, and the focal length. A long lens (large f) pinches the cone narrow, which is exactly what zooming in feels like, while a short lens throws it wide open. The half-angle is just the arctangent of half the sensor width over f, so the whole field of view is simply twice that. Slide f back and forth and watch the cone breathe in and out.`,
  worked:`<p>Sensor <span class="world">W = 640 px</span>, <kbd class="t">f = 400 px</kbd>.</p>
   <div class="work"><div class="line">half angle = atan( (W/2) / f )</div><div class="line">          = atan( 320 / 400 )</div><div class="line">          = atan( 0.8 )</div><div class="line">          = 38.66°</div><div class="res">FOV = 2 × 38.66° = 77.3°</div></div>`,
  formula:{grid:`${MX([['FOV','=','2 · atan( W / 2f )']])}`,
@@ -937,7 +937,7 @@ const LESSONS=[
     hints:['Bigger f, smaller angle.','Zoom in.','Narrower.'],diag:['Opposite — bigger f narrows it.',null,'f changes the angle.']}]},
 /* ---------- MODULE 2 ---------- */
 {id:'2.1',mod:2,n:'2.1',title:'Add a 1, divide to come back',sub:'Scale does not matter',diagram:'homog',
- story:`Homogeneous coordinates give every point a spare number on the end. A flat point (x, y) becomes (x, y, 1); a 3D point (X, Y, Z) becomes (X, Y, Z, 1). The trick is that multiplying all the numbers by any non-zero amount gives the <b>same</b> point — (6, 4, 2) is the same place as (3, 2, 1). To read the ordinary point back, divide everything by the last number. This one idea turns moving and perspective into plain matrix multiplication, which is why the whole chapter uses it.`,
+ story:`Homogeneous coordinates sound intimidating, but the idea is really quite friendly: we simply glue one extra number onto the end of every point. A flat (x, y) becomes (x, y, 1), and a 3D point gains a 1 as well. The one surprise to grow comfortable with is that scaling all the numbers together does not change the point at all — (6, 4, 2) names the very same place as (3, 2, 1). To read the ordinary point back, you just divide everything by that last number. It is a small habit, but it is the key that later lets moving and perspective become plain matrix multiplication.`,
  worked:`<div class="work"><div class="line">(x, y)        → (x, y, 1)</div><div class="line">(9, 6, 3)     ÷ 3 → (3, 2)</div><div class="line">(X,Y,Z,w)     → (X/w, Y/w, Z/w)</div><div class="res">k·(x, y, w)   is the SAME point for any k ≠ 0</div></div>`,
  formula:{grid:`${MX([['(x, y, w)','→','(x/w, y/w)']],{cap:'divide by the last number'})}`,
    symbols:[['w','the extra homogeneous number (the "scale")'],['÷ w','how you return to the ordinary point'],['k','any non-zero scale; k·point is the same point']]},
@@ -962,7 +962,7 @@ const LESSONS=[
     line:v=>`(2,3) → (2, 3, 1)`,hints:['Append a 1.','(x, y) → (x, y, 1).','(2, 3, 1).'],diag:v=>null}]},
 
 {id:'2.2',mod:2,n:'2.2',title:'Points at infinity & vanishing points',sub:'When the last number is 0',diagram:'railway',
- story:`What if the last number is 0? You cannot divide by zero, so there is no ordinary point. Instead, (a, b, 0) stands for a pure <b>direction</b> — a point infinitely far away. These are not a mistake; they are exactly how a photo shows parallel lines meeting at the horizon. The shared direction of the rails is a point at infinity, and its image is the vanishing point. Two parallel world lines meet where their last number is 0.`,
+ story:`So what happens when that last number is zero? You cannot divide by zero, so there is no ordinary point to land on — and that is not a bug, it is a feature. A triple like (a, b, 0) stands for a pure direction, a point infinitely far away. This is exactly how a photograph shows parallel lines meeting at the horizon: the shared direction of the rails is a point at infinity, and its image is the vanishing point. So the next time two parallel lines seem to "meet", look for that quiet zero sitting at the end.`,
  worked:`<div class="work"><div class="line">(7, 39, 42, 0) → try to divide by 0 … impossible</div><div class="line">so it is a DIRECTION, not a place</div><div class="res">image of that direction = the vanishing point</div></div>`,
  formula:{grid:`<p>Last number 0 ⇒ point at infinity (a direction). Its image under the camera is a vanishing point.</p>`,
    symbols:[['(a,b,0)','a 2D direction / point at infinity'],['(a,b,c,0)','a 3D direction'],['vanishing point','where images of lines with that direction meet']]},
@@ -976,7 +976,7 @@ const LESSONS=[
     hints:['Think of the horizon.','Shared direction.','Vanishing point.'],diag:[null,null,'Only if they point along the axis.']}]},
 
 {id:'2.3',mod:2,n:'2.3',title:'Lines as cross products',sub:'Join two points, meet two lines',diagram:'homog',
- story:`In homogeneous land a line is also three numbers (a, b, c), meaning ax + by + c = 0. Two beautiful facts follow. The line through two points is their cross product. A point lies on a line exactly when their dot product is zero. And — by the same trick — the meeting point of two lines is the cross product of the two lines. Join and meet are the same operation. If the meeting comes out with last number 0, the lines were parallel and meet at infinity.`,
+ story:`Here is a result I think you will find rather beautiful. In homogeneous coordinates a line is also three numbers, (a, b, c), meaning ax + by + c = 0 — so points and lines speak the same language. Two gifts follow from that. The line through two points is simply their cross product, and a point sits on a line exactly when their dot product is zero. By the very same move, the meeting point of two lines is the cross product of the two lines. Joining and meeting turn out to be the same operation — and if the answer ends in a zero, the lines were parallel and they meet at infinity.`,
  worked:`<p>Line through (4, 1) and (4, 2):</p>
   <div class="work"><div class="line">(4,1,1) × (4,2,1)</div><div class="line">= (1·1 − 1·2,  1·4 − 4·1,  4·2 − 1·4)</div><div class="res">= (−1, 0, 4)   →  −x + 4 = 0  →  x = 4</div></div>`,
  formula:{grid:`${MX([['l','=','p × q'],['p·l','=','0'],['x','=','l₁ × l₂']],{cap:'join, on-line test, and meet'})}
@@ -1001,7 +1001,7 @@ const LESSONS=[
     line:v=>`(3,−1,7)×(3,−1,−3) = (10, 30, 0) — last number 0 → meet at infinity`,hints:['Use (et−sf, −(dt−rf), ds−re).','a = (−1)(−3)−7(−1) = 10; b = −(3·−3 − 7·3) = 30.','c = 3·−1 − (−1)·3 = 0. The 0 means parallel.'],diag:v=>approx(v[2],0)?null:'The last number should be 0 (they are parallel): c = 3·(−1) − (−1)·3 = 0.'}]},
 
 {id:'2.4',mod:2,n:'2.4',title:'Why bother? The pinhole as one matrix',sub:'Division becomes multiplication',diagram:'pipeline',
- story:`Here is the payoff. The pinhole rule x = fX/Z needs a division, which matrices cannot do on their own. Homogeneous coordinates sneak the division in through the back door: a matrix produces (fX, fY, Z), and the final "divide by the last number" does the perspective divide for free. So the whole pinhole camera becomes one matrix multiply followed by a divide. Translation, which also resisted matrices, becomes a plain multiply too. That is the real reason this chapter lives in homogeneous coordinates.`,
+ story:`Let me show you the payoff for all this careful bookkeeping. The pinhole rule x = fX/Z needs a division, and matrices, left to themselves, cannot divide. Homogeneous coordinates slip the division in through a side door: a matrix hands you (fX, fY, Z), and our habit of "divide by the last number" quietly performs the perspective divide for free. So the entire pinhole camera becomes one matrix multiply followed by a divide — and translation, which also resisted matrices, now comes along as an ordinary multiply too. That convenience is the whole reason we have been carrying that extra 1 around.`,
  worked:`<div class="work"><div class="line">λ (x, y, 1) = diag(f, f, 1) · [I | 0] · (X, Y, Z, 1)ᵀ</div><div class="line">[I|0]·(X,Y,Z,1) = (X, Y, Z)</div><div class="line">diag(f,f,1)·(X,Y,Z) = (fX, fY, Z)</div><div class="res">÷ last number Z → (fX/Z, fY/Z) ✓ the pinhole rule</div></div>`,
  formula:{grid:`${MX([['f','0','0','0'],['0','f','0','0'],['0','0','1','0']],{cap:'P = diag(f,f,1)[I | 0]  — one matrix, 1 DOF (just f)'})}`,
    symbols:[['[I | 0]','drops the homogeneous 1, keeps (X,Y,Z)'],['diag(f,f,1)','scales x,y by f, leaves depth'],['λ','the scale = depth Z; dividing by it does perspective']]},
@@ -1015,7 +1015,7 @@ const LESSONS=[
     hints:['It is the last number before dividing.','Equals Z.','Depth.'],diag:['f is inside P.',null,'Only after dividing.']}]},
 
 {id:'2.5',mod:2,n:'2.5',title:'Affine maps send lines to lines',sub:'A tiny three-line proof',diagram:'affine',
- story:`An affine map stretches, rotates and shifts: x' = A x + t. A fact the exam likes is that such a map always turns straight lines into straight lines. The proof is three lines long. Take any line as a moving point that slides at a steady rate. Apply the map. Because the map is linear plus a constant, the result also slides at a steady rate — which is again a straight line. No curves can appear. Rotations, scalings, shears and translations are all affine, so they all keep lines straight.`,
+ story:`Let's prove a small, satisfying fact: an affine map — stretch, rotate, shift, written x' = A x + t — always sends straight lines to straight lines. The argument is only three lines long, so stay with me. Picture a line as a point sliding along at a steady pace. Apply the map, and because it is linear plus a constant, the result also slides at a steady pace — which is, again, a straight line. No curve can sneak in, which is exactly why rotations, scalings, shears and translations all keep our lines honest.`,
  worked:`<div class="work"><div class="line">a line: p(s) = p₀ + s·d   (s slides along direction d)</div><div class="line">apply map: x'(s) = A(p₀ + s·d) + t</div><div class="line">        = (A p₀ + t) + s·(A d)</div><div class="res">= q₀ + s·d'   — a straight line again ✓</div></div>`,
  formula:{grid:`${MX([['1','0','tx'],['0','1','ty'],['0','0','1']],{cap:'translation T (homogeneous)'})}
    ${MX([['cos t','−sin t','0'],['sin t','cos t','0'],['0','0','1']],{cap:'point-rotation R'})}`,
@@ -1031,7 +1031,7 @@ const LESSONS=[
 
 /* ---------- MODULE 3 ---------- */
 {id:'3.1',mod:3,n:'3.1',title:'Rotation in 2D: rows are the camera’s axes',sub:'Read rows across',diagram:'rotmap',
- story:`A rotation matrix looks scary but it is just a little table whose <b>rows</b> are the camera's own arrows, written in world directions. To find where a point sits for the camera, you ask each arrow "how many steps along you is the point?" — and that is a row times the point. The red row is the camera's right, the blue row is its forward. Multiply each row by the point and add. That is the whole operation. Turn the dial and watch the point land in the camera's own view.`,
+ story:`Rotation matrices look fierce at first, but let me reassure you — one is really just a small table whose rows are the camera's own arrows, written in the world's directions. To find where a point sits for the camera, you simply ask each arrow, "how many steps along you is the point?", and that question is answered by a row times the point. The red row is the camera's right, the blue row its forward. Multiply each row by the point, add up, and you are done — that is the whole operation. Turn the dial and watch the point settle into the camera's own view.`,
  worked:`<p>R rows <span class="xr">(0, 1)</span>, <span class="zb">(−1, 0)</span>; point <span class="pt">(3, 0)</span>.</p>
   <div class="work"><div class="line">right row · point = 0·3 + 1·0 = 0</div><div class="line">fwd   row · point = −1·3 + 0·0 = −3</div><div class="res">X_cam = (0, −3)</div></div>
   <p class="plain">Read ROWS across, never columns down.</p>`,
@@ -1055,7 +1055,7 @@ const LESSONS=[
     hints:['Read rows across.','Row 1 · point, then row 2 · point.','Rows, never columns.'],diag:['Columns give the transpose — a different turn.',null,'You must sum the products within each row.']}]},
 
 {id:'3.2',mod:3,n:'3.2',title:'From an angle — and the transpose trap',sub:'Camera-turn vs point-turn',diagram:'rotmap',
- story:`If the camera is turned by an angle t, its right arrow becomes (cos t, sin t) and its forward arrow becomes (−sin t, cos t) — those are the rows of R. There is a famous trap here. The matrix that <b>rotates a point</b> is the transpose of the matrix that <b>expresses a point in a turned camera</b>. They look almost the same but swap the sign of the sines across the diagonal. Always ask: am I turning the point, or turning the camera? The two undo each other.`,
+ story:`When the camera is turned by an angle t, its right arrow becomes (cos t, sin t) and its forward arrow becomes (−sin t, cos t) — and those are simply the rows of R. Now a gentle warning about a classic trap, because almost everyone meets it. The matrix that rotates a point is the transpose of the matrix that expresses a point in a turned camera; they look like twins but swap the sign of the sines across the diagonal. So whenever you pick one up, pause and ask yourself: am I turning the point, or turning the camera? Answer that honestly and the trap simply disappears.`,
  worked:`<p>Camera turned by t = 90°.</p>
   <div class="work"><div class="line">right row = (cos90, sin90) = (0, 1)</div><div class="line">fwd   row = (−sin90, cos90) = (−1, 0)</div><div class="res">R_cam rows (0,1),(−1,0)   — its transpose rotates a POINT by +90°</div></div>`,
  formula:{grid:`${MX([['cos t','sin t'],['−sin t','cos t']],{cap:'express point in a camera turned by t'})}
@@ -1074,7 +1074,7 @@ const LESSONS=[
     line:v=>`fwd row = (−1, 0)`,hints:['−sin90 = −1, cos90 = 0.','(−1, 0).','Forward = (−1,0).'],diag:v=>approx(v[0],1)?'−sin 90° = −1.':null}]},
 
 {id:'3.3',mod:3,n:'3.3',title:'3D rotation — row 3 is the look direction',sub:'Right, down, forward (and order matters)',diagram:'orbit',
- story:`In 3D the rotation has three rows: the camera's right, its down, and its forward. The most useful fact in the whole chapter: <b>row 3 is where the camera looks</b>. Point rotations about each axis have their own matrices Rx, Ry, Rz. And a warning the exam tests: rotations do <b>not</b> commute. Turning right then up is not the same as up then right. Orbit the 3D scene and swing the dials to feel it — the camera's blue forward arrow ends up somewhere different depending on the order.`,
+ story:`Let's step into 3D, where the rotation grows a third row. Now it holds the camera's right, its down, and its forward — and here is the single most useful thing to carry from this whole chapter: row 3 is where the camera looks. Each single-axis turn has its own friendly matrix, Rx, Ry and Rz. One habit worth building early is this: rotations do not commute, so turning right then up is genuinely different from up then right. Orbit the scene and swing the dials — you will feel the blue forward arrow end up somewhere new depending on the order you choose.`,
  worked:`<div class="work"><div class="line">R row 1 = camera RIGHT  (x axis, red)</div><div class="line">R row 2 = camera DOWN   (y axis, green)</div><div class="res">R row 3 = camera FORWARD = where it looks (z axis, blue)</div></div>
   <p class="plain">Rz·Ry ≠ Ry·Rz — order changes the result.</p>`,
  formula:{grid:`${MX([['r₁₁','r₁₂','r₁₃'],['r₂₁','r₂₂','r₂₃'],['r₃₁','r₃₂','r₃₃']],{colors:['var(--xr)','var(--yg)','var(--zb)'],cap:'rows = right, down, forward'})}`,
@@ -1092,7 +1092,7 @@ const LESSONS=[
     hints:['Right-then-up vs up-then-right.','Different results.','Order matters.'],diag:['They do not.',null,'det is +1 either way.']}]},
 
 {id:'3.4',mod:3,n:'3.4',title:'Is it a valid rotation?',sub:'RᵀR = I, det = +1',diagram:'rotcheck',
- story:`Not every table of numbers is a rotation. A real rotation only turns — it never stretches or flips. That means every row has length exactly 1, and the rows are at right angles to each other. Written compactly: R transpose times R is the identity, and the determinant is +1 (a determinant of −1 would be a mirror flip). A quick exam check: measure each row's length and test two rows for perpendicularity with a dot product. The inverse of a rotation is just its transpose, and it has only 3 degrees of freedom.`,
+ story:`Not every grid of numbers earns the name "rotation", so let's learn to tell the real ones apart. A true rotation only turns — it never stretches or flips — which means each row has length exactly one and the rows meet at right angles. Written compactly, that is R transpose times R equals the identity, with a determinant of +1 (a −1 would be a sneaky mirror flip). On an exam a quick check is plenty: measure each row's length, and test a pair with a dot product. Nudge the arrows in the picture and watch the verdict turn green only when everything lines up.`,
  worked:`<p>Is rows (1, 0), (1, 1) a rotation?</p>
   <div class="work"><div class="line">row 1 length = √(1²+0²) = 1 ✓</div><div class="line">row 2 length = √(1²+1²) = √2 ✗  (not 1)</div><div class="line">row1 · row2 = 1·1 + 0·1 = 1 ✗  (not 0, not perpendicular)</div><div class="res">NOT a valid rotation</div></div>`,
  formula:{grid:`${MX([['Rᵀ R','=','I'],['det R','=','+1']],{cap:'rows unit length, perpendicular, no flip'})}`,
@@ -1110,7 +1110,7 @@ const LESSONS=[
     hints:['Two tests failed.','Length and perpendicularity.','No.'],diag:['Both tests fail.',null,'det is 1 here; that is not the reason.']}]},
 
 {id:'3.5',mod:3,n:'3.5',title:'Fixing a broken rotation with SVD',sub:'The nearest true rotation',diagram:'svdfix',
- story:`Measured or estimated rotations drift: rounding makes the rows not quite unit length or not quite perpendicular. The clean repair uses the SVD. Factor the near-rotation into three pieces, throw away the middle stretching piece, and multiply the two orthogonal pieces back together. The result is the closest genuine rotation. It is a one-line fix that appears whenever rotations come from noisy data or least-squares.`,
+ story:`Real rotations, once measured or estimated, tend to drift — rounding leaves the rows a little too long or not quite square. Happily there is a tidy repair, and it is a single line. Factor the near-rotation into three pieces with the SVD, gently discard the middle stretching piece, and multiply the two orthogonal pieces back together. What you are left with is the closest honest rotation there is. Press "Fix" and watch the crooked arrows snap into a perfect right angle.`,
  worked:`<div class="work"><div class="line">given a near-rotation R (rows slightly off)</div><div class="line">SVD:  R = U S Vᵀ</div><div class="line">drop the stretch S (set it to I)</div><div class="res">R_fixed = U Vᵀ   (a true rotation)</div></div>`,
  formula:{grid:`${MX([['R','=','U S Vᵀ'],['R_fix','=','U Vᵀ']],{cap:'nearest orthonormal matrix'})}`,
    symbols:[['U, V','orthogonal matrices (pure rotations/flips)'],['S','diagonal stretches (the error we drop)'],['U Vᵀ','the nearest true rotation']]},
@@ -1124,7 +1124,7 @@ const LESSONS=[
     hints:['The diagonal piece.','Stretches.','Singular values.'],diag:['U and V are the rotations.',null,'No translation here.']}]},
 /* ---------- MODULE 4 ---------- */
 {id:'4.1',mod:4,n:'4.1',title:'Moving the camera: t = −RC',sub:'Why the minus sign',diagram:'rotmap',
- story:`Now let the camera stand at a spot C instead of the origin. The camera always sees itself at (0,0,0), so first we slide the world over by subtracting C — this puts the camera home — and then we turn by R. That gives X_cam = R(X − C). Multiplying out, this is the same as R·X plus a fixed shift t, where t = −R·C. The minus is there because t is not where the camera is; it is the leftover shift after the world has already been moved and turned.`,
+ story:`Now let's allow the camera to leave the origin and stand at some spot C. The camera always considers itself to be at home, at (0,0,0), so first we slide the whole world over by subtracting C, and then we turn by R — that is X_cam = R(X − C). Multiply it out and the same thing becomes R·X plus a fixed shift t, where t = −R·C. That minus sign puzzles many students, so hold onto this: t is not where the camera is, it is the leftover shift after the world has already been moved and turned. Build the answer one small step at a time and it will soon feel natural.`,
  worked:`<p>R rows (1,0),(0,1); camera at <span class="pt">C = (3, 2)</span>.</p>
   <div class="work"><div class="line">t = −R·C</div><div class="line">R·C = (1·3+0·2, 0·3+1·2) = (3, 2)</div><div class="res">t = −(3, 2) = (−3, −2)</div></div>`,
  formula:{grid:`${MX([['X_cam','=','R(X − C)','=','R X + t'],['t','=','−R C']],{cap:'extrinsics: turn, then shift'})}`,
@@ -1148,7 +1148,7 @@ const LESSONS=[
     hints:['Start from X_cam = R(X − C).','Expanding gives R·X − R·C.','The leftover constant is t = −R·C.'],diag:['That is C, not t.',null,'Rotations do not flip sign on their own.']}]},
 
 {id:'4.2',mod:4,n:'4.2',title:'The extrinsic matrix [R | t]',sub:'Six numbers of pose',diagram:'extrinsic6',
- story:`Stick the rotation and the translation side by side and you get a 3×4 block called the extrinsic matrix. It is the camera's pose: three numbers say how it is turned and three say where it stands. Together that is six degrees of freedom. The rotation part always obeys the rotation rules; the translation part is free. This block is half of the full camera — the other half is the intrinsics K coming next.`,
+ story:`Let's put the two halves of pose side by side. Place the rotation and the translation next to each other and you get a neat 3×4 block, the extrinsic matrix — three numbers saying how the camera is turned, and three saying where it stands. That is six degrees of freedom in all. The rotation part still obeys every rotation rule we just learned, while the translation part is free to be anything at all. This block is one half of the full camera; the other half, the intrinsics K, is waiting for us in the next module.`,
  worked:`<div class="work"><div class="line">[ R | t ] is 3 rows, 4 columns</div><div class="line">first 3 columns = R (orientation, 3 DOF)</div><div class="res">last column = t (position, 3 DOF) → 6 DOF total</div></div>`,
  formula:{grid:`${MX([['r₁₁','r₁₂','r₁₃','t₁'],['r₂₁','r₂₂','r₂₃','t₂'],['r₃₁','r₃₂','r₃₃','t₃']],{cap:'[R | t] — extrinsic parameters, 6 DOF'})}`,
    symbols:[['R (3 cols)','orientation, 3 degrees of freedom'],['t (last col)','position shift, 3 DOF'],['[R|t]','the camera pose, 3×4']]},
@@ -1162,7 +1162,7 @@ const LESSONS=[
     hints:['t = −RC, not C.','It is t.','The shift.'],diag:['C is recovered separately.',null,'f is in K.']}]},
 
 {id:'4.3',mod:4,n:'4.3',title:'Going backwards: C = −Rᵀt',sub:'Recover the camera position',diagram:'roundtrip',
- story:`Given R and t, where is the camera? Undo the formula t = −R·C. Multiply both sides by R transpose (which is R's inverse) and flip the sign: C = −Rᵀ·t. The same inverse-rotation also sends a camera-frame point back into the world: X_world = Rᵀ(X_cam − t). These reverse steps are how you check an answer or recover the pose from a projection matrix.`,
+ story:`Suppose someone hands you R and t and asks, "where is the camera?" Let's simply run the formula backwards. Starting from t = −R·C, multiply both sides by R transpose — which, for a rotation, is its inverse — and tidy the sign to get C = −Rᵀ·t. That same inverse rotation also carries a camera-frame point back out into the world. These reverse steps are wonderful for checking your own work, and the round-trip picture shows Rᵀ gently undoing R to land you right back on the original C.`,
  worked:`<p>R rows (0,1),(−1,0), t = (0,1).</p>
   <div class="work"><div class="line">Rᵀ rows = columns of R = (0,−1),(1,0)</div><div class="line">Rᵀ·t = (0·0 + (−1)·1, 1·0 + 0·1) = (−1, 0)</div><div class="res">C = −Rᵀ·t = (1, 0) ✓</div></div>`,
  formula:{grid:`${MX([['C','=','−Rᵀ t'],['X_world','=','Rᵀ(X_cam − t)']],{cap:'inverse of the extrinsic step'})}`,
@@ -1180,7 +1180,7 @@ const LESSONS=[
     hints:['The inverse rotation.','Transpose.','Rᵀ.'],diag:['That is the forward turn.',null,'K is intrinsics.']}]},
 
 {id:'4.4',mod:4,n:'4.4',title:'Depth and its sign',sub:'In front (Zc>0) or behind (Zc<0)',diagram:'pixels',
- story:`The depth of a point, as the camera sees it, is simply the third coordinate of X_cam. Its sign is a yes/no on visibility. If Zc is positive the point is in front of the camera and can appear in the image. If Zc is negative the point is behind the lens — the projection formula will still hand you a pixel, but it is a ghost the camera never sees. Always read the sign of the third camera coordinate before trusting a pixel.`,
+ story:`Let's look at one small number that quietly carries a lot of weight: the depth. As the camera sees it, the depth of a point is just the third coordinate of X_cam, and its sign is a plain yes-or-no on visibility. If Zc is positive, the point is in front of the camera and may appear in the picture; if it is negative, the point is behind the lens. Do be a little careful here — the projection formula will still cheerfully hand you a pixel for a point behind the camera, but it is a ghost the camera never truly sees. So before you trust a pixel, give that third coordinate a quick, kind glance.`,
  worked:`<div class="work"><div class="line">X_cam = (Xc, Yc, Zc)</div><div class="line">Zc = third coordinate</div><div class="line">Zc > 0 → in front, visible</div><div class="res">Zc < 0 → behind the camera (pixel is a ghost)</div></div>`,
  formula:{grid:`<p>Depth = Zc (third entry of X_cam). Visible ⇔ Zc > 0. Also the pixel must land inside the image bounds.</p>`,
    symbols:[['Zc','depth = third coordinate of X_cam'],['Zc > 0','point in front of the camera'],['Zc < 0','point behind — not really seen']]},
@@ -1195,7 +1195,7 @@ const LESSONS=[
 
 /* ---------- MODULE 5 ---------- */
 {id:'5.1',mod:5,n:'5.1',title:'Camera units to pixels: the three moves',sub:'Divide, scale, shift',diagram:'pixels',
- story:`Turning a camera-space point into a pixel is like Celsius to Fahrenheit: multiply, then add. Three moves do it. First divide by the depth Zc — that is the perspective. Then multiply by the focal length f to get the right scale. Then add the principal point (cx, cy) to slide from a centred coordinate to the pixel grid, whose origin sits in the top-left corner. Do the three in order and the point lands on exactly the right pixel.`,
+ story:`Turning a camera-space point into a pixel is a lot like converting Celsius to Fahrenheit — you multiply, then you add — and it comes down to three gentle moves. First, divide by the depth Zc; that is the perspective. Then multiply by the focal length f to get the scale right. Finally, add the principal point (cx, cy) to slide from a nicely centred coordinate onto the pixel grid, whose origin lives up in the top-left corner. Do those three in order and the point lands on exactly the right pixel, every single time.`,
  worked:`<p><kbd class="t">f = 400</kbd>, centre <span class="yg">(320, 240)</span>, point <span class="pt">(2, 1, 8)</span>.</p>
   <div class="work"><div class="line">u = f·Xc/Zc + cx = 400·2/8 + 320 = 100 + 320 = 420</div><div class="res">v = f·Yc/Zc + cy = 400·1/8 + 240 =  50 + 240 = 290</div></div>`,
  formula:{grid:`${MX([['u','=','f·Xc/Zc + cx'],['v','=','f·Yc/Zc + cy']],{cap:'divide by depth, scale by f, add the centre'})}`,
@@ -1223,7 +1223,7 @@ const LESSONS=[
     line:v=>`u = 200·3/6+100 = 200 ; v = 200·(−1)/6+100 ≈ 66.67`,hints:['u = f·Xc/Zc + cx — divide by depth 6 first.','200·3/6 = 100, then +100 = 200.','v = 200·(−1)/6 + 100 ≈ 66.67.'],diag:v=>approx(v[0],700)?'Divide by the depth 6 first: 200·3/6, not 200·3.':null}]},
 
 {id:'5.2',mod:5,n:'5.2',title:'K as a grid',sub:'Read f and the centre straight off',diagram:'pixels',
- story:`The three moves pack into one tidy upper-triangular matrix K. Its top-left two entries are the focal length, and the top of the last column is the principal point (cx, cy). Multiplying K by a camera point and then dividing by the third number does exactly the divide-scale-shift. Because K is so regular, you can read the focal length and centre straight off the grid — a common first part of exam questions.`,
+ story:`Those three moves tuck neatly into one tidy upper-triangular matrix, K. Its top-left entries hold the focal length, and the top of the last column holds the principal point — so you can often read f and the centre straight off the grid, which is why examiners love to ask for them first. To project a point, multiply by K and then divide by the third number, and you have done the divide-scale-shift all at once. It is the same three steps you already know, just gathered into one well-organised box.`,
  worked:`<p>Project (−1, 2, 4) with K below.</p>
   <div class="work"><div class="line">K·(−1,2,4) = (400·−1 + 320·4, 400·2 + 240·4, 4)</div><div class="line">          = (880, 1760, 4)</div><div class="res">÷ 4 → (220, 440)</div></div>`,
  formula:{grid:`${MX([['f','0','cx'],['0','f','cy'],['0','0','1']],{cap:'K — intrinsic matrix'})}`,
@@ -1244,7 +1244,7 @@ const LESSONS=[
     line:v=>`f = 250, (cx, cy) = (150, 150)`,hints:['f top-left, centre = top of last column.','f = 250.','(150, 150).'],diag:v=>approx(v[0],150)?'That is the centre; f is the top-left 250.':null}]},
 
 {id:'5.3',mod:5,n:'5.3',title:'General K: fx, fy, skew',sub:'Pixels that are not square',diagram:'generalK',
- story:`Real sensors are not perfectly square, so the general K allows a different scale in x and y, called αx and αy (also fx, fy). There is also a skew term s for the rare case of non-rectangular pixels; it is almost always zero. The focal length in pixels equals the focal length in millimetres divided by the pixel size, which is why fx and fy can differ. With skew, K has 5 degrees of freedom; without it, 4.`,
+ story:`Real sensors are not perfectly square, so let's meet the more general K, which simply allows a different scale in x and y — call them αx and αy. There is also a skew term, s, for the rare case of non-rectangular pixels, and in practice it is almost always zero. The reason the two scales can differ is that focal length in pixels equals focal length in millimetres divided by the pixel size. Count the free entries and you will find five degrees of freedom with skew, or four without — nothing mysterious, just a little more honesty about the sensor.`,
  worked:`<div class="work"><div class="line">αx = f·mx,  αy = f·my   (mx, my = pixels per unit)</div><div class="line">x₀ = mx·px,  y₀ = my·py</div><div class="line">f(pixels) = f(mm) / pixel size</div><div class="res">DOF: 5 with skew, 4 without</div></div>`,
  formula:{grid:`${MX([['αx','s','x₀'],['0','αy','y₀'],['0','0','1']],{cap:'general K (skew s), 5 DOF'})}`,
    symbols:[['αx, αy','focal length in pixels, per axis (fx, fy)'],['s','skew — non-rectangular pixels, usually 0'],['x₀, y₀','principal point in pixels']]},
@@ -1258,7 +1258,7 @@ const LESSONS=[
     line:v=>`f(px) = 8 / 0.02 = ${fmt(v[0])}`,hints:['Divide mm by pixel size.','8 / 0.02.','400.'],diag:v=>approx(v[0],0.16)?'Divide, do not multiply: 8 / 0.02 = 400.':null}]},
 
 {id:'5.4',mod:5,n:'5.4',title:'Intrinsic vs extrinsic',sub:'What changes when the camera moves or zooms',diagram:'intvsext',
- story:`Keep the two halves of the camera straight. Intrinsics K are inside the camera — the lens and sensor — and they change only when you zoom or swap lenses. Extrinsics [R|t] are outside — where the camera stands and how it is aimed — and they change whenever the camera moves. Walk across the room: extrinsics change, intrinsics stay. Zoom in without moving: intrinsics change, extrinsics stay. The full camera multiplies the two together.`,
+ story:`Let's keep the two halves of the camera clearly apart, because doing so saves a great deal of confusion later. The intrinsics K live inside the camera — the lens and the sensor — and they change only when you zoom or swap a lens. The extrinsics [R|t] live outside — where the camera stands and how it is aimed — and they change the moment the camera moves. Walk across the room and the extrinsics shift while the intrinsics sit perfectly still; zoom in without moving and it is the other way round. The full camera, as always, is the two of them multiplied together.`,
  worked:`<div class="work"><div class="line">move the camera → R, t change ; K unchanged</div><div class="line">zoom (change f) → K changes ; R, t unchanged</div><div class="res">full camera P = K · [R | t]</div></div>`,
  formula:{grid:`<p>Intrinsic K: lens + sensor (f, centre, skew). Extrinsic [R|t]: pose (where and how aimed).</p>`,
    symbols:[['K','intrinsics — change on zoom / lens swap'],['[R|t]','extrinsics — change when the camera moves'],['P = K[R|t]','the two combined']]},
@@ -1272,7 +1272,7 @@ const LESSONS=[
     hints:['f is inside K.','Zoom = f.','Intrinsics.'],diag:[null,'You did not move.','f changed.']}]},
 
 {id:'5.5',mod:5,n:'5.5',title:'Image conventions',sub:'Origin top-left, v points down',diagram:'pixels',
- story:`One quiet convention trips people up. In an image the pixel origin (0,0) is the top-left corner, u increases to the right, and v increases downward — not upward like a maths graph. That is why the principal point (cx, cy) is around (320, 240) for a 640×480 image, not (0,0). When you compute a v coordinate, a larger value means lower on the picture. Keep this in mind when a point lands "below" the centre.`,
+ story:`Let me point out one quiet convention that trips up a lot of people, so that it will not trip you. In an image, the origin (0,0) sits in the top-left corner, u grows to the right, and v grows downward — not upward the way a maths graph does. That is why the principal point of a 640×480 image sits near (320, 240) rather than at the origin. So when you compute a v coordinate, remember that a larger value simply means lower down the picture. A small thing, but a handy one to keep in your pocket.`,
  worked:`<div class="work"><div class="line">(0,0) = top-left corner</div><div class="line">u → right, v → DOWN</div><div class="line">640×480 image → centre near (320, 240)</div><div class="res">big v = lower in the picture</div></div>`,
  formula:{grid:`<p>Pixel axes: origin top-left, u right, v down. Principal point near the middle of the sensor.</p>`,
    symbols:[['(0,0)','top-left corner of the image'],['u','increases to the right'],['v','increases downward']]},
@@ -1307,7 +1307,7 @@ const LESSONS=[
  reveal:``},
 
 {id:'6.1',mod:6,n:'6.1',title:'Build P = K[R|t], row by row',sub:'Each K row mixes the [R|t] rows',diagram:'pbuilder',
- story:`You just saw <i>why</i> we want one matrix. Here is <i>how</i> to build it. The full camera P is made by multiplying K into the extrinsic block [R|t]. The clean way: each row of the answer is one row of K telling you how much of each [R|t] row to take. The top row of K is (f, 0, cx), so the top row of P is f times the first [R|t] row plus cx times the third. Do the three rows and you have P. Hover a K row in the diagram to see which [R|t] rows it combines.`,
+ story:`You have just seen why we want one matrix; now let's gently build it together. The full camera P comes from multiplying K into the extrinsic block [R|t], and there is a clean way to do it by hand. Each row of the answer is one row of K telling you how much of each [R|t] row to take. The top row of K is (f, 0, cx), so the top row of P is f times the first [R|t] row plus cx times the third — and the other rows follow the very same friendly pattern. Hover a K row in the picture and watch which [R|t] rows it reaches for.`,
  worked:`<p>K rows (400 0 320),(0 400 240),(0 0 1); [R|t] rows (1 0 0 0),(0 0 −1 0),(0 1 0 −5).</p>
   <div class="work"><div class="line">P row1 = 400·(1 0 0 0) + 320·(0 1 0 −5) = (400, 320, 0, −1600)</div><div class="line">P row2 = 400·(0 0 −1 0) + 240·(0 1 0 −5) = (0, 240, −400, −1200)</div><div class="res">P row3 = 1·(0 1 0 −5) = (0, 1, 0, −5)</div></div>`,
  formula:{grid:`${MX([['400','320','0','−1600'],['0','240','−400','−1200'],['0','1','0','−5']],{cap:'P = K[R | t], 3×4'})}`,
@@ -1325,7 +1325,7 @@ const LESSONS=[
     line:v=>`P row3 = (0, 1, 0, −5)`,hints:['Just the third [R|t] row.','(0,1,0,−5).','Done.'],diag:v=>null}]},
 
 {id:'6.2',mod:6,n:'6.2',title:'Projecting with P (λ is the depth)',sub:'Multiply, then divide by the third',diagram:'pipeline',
- story:`To project a world point, glue a 1 on the end, multiply by P, and you get three numbers. The third one is the depth λ. Divide the first two by it and you have the pixel. If that third number comes out negative, the point is behind the camera — the arithmetic still runs, but the pixel is a ghost. This is the one-matrix route; it must agree with the step-by-step route.`,
+ story:`Projecting a point with P is pleasantly short. Glue a 1 onto your world point, multiply by P, and you will have three numbers; the third one is the depth, λ. Divide the first two by it and there is your pixel. Do keep a kind eye on that third number — if it comes out negative, the point is behind the camera, and the pixel, while the arithmetic is perfectly happy, is only a ghost. This is the one-matrix route, and it should always agree with the step-by-step one.`,
  worked:`<p>Project (2, 0, 10) with the P from 6.1.</p>
   <div class="work"><div class="line">P·(2,0,10,1) = (−800, −5200, −5)</div><div class="line">λ = −5 (the depth — negative!)</div><div class="res">pixel = (−800/−5, −5200/−5) = (160, 1040), but BEHIND the camera</div></div>`,
  formula:{grid:`${MX([['λ(u, v, 1)','=','P·(X, Y, Z, 1)']],{cap:'λ = depth; divide by it for the pixel'})}`,
@@ -1343,7 +1343,7 @@ const LESSONS=[
     hints:['Sign of depth.','Negative.','Behind.'],diag:['Negative = behind.',null,'Not zero.']}]},
 
 {id:'6.3',mod:6,n:'6.3',title:'Two routes, one pixel',sub:'The matrix matches the steps',diagram:'tworoutes',
- story:`There are two ways to get the pixel and they must agree. Route one: do it step by step — apply R and t to get X_cam, divide by depth, apply K. Route two: build P = K[R|t] and multiply once, then divide. Same pixel every time, because P is literally the steps folded together. On an exam, computing both is a built-in check: if they disagree, you made an arithmetic slip somewhere.`,
+ story:`There are two ways to reach the pixel, and the reassuring thing is that they must agree. One way is step by step — apply R and t, divide by depth, apply K. The other is to build P once and multiply, then divide by the third number. They give the same pixel every time, simply because P is those steps folded together. So on an exam, computing both is a free safety net: if they ever disagree, you have caught a small slip somewhere, which is really a gift.`,
  worked:`<div class="work"><div class="line">step route: X_cam = (2,−10,−5) → u=400·2/−5+320=160, v=400·−10/−5+240=1040</div><div class="line">matrix route: P·(2,0,10,1)=(−800,−5200,−5) → (160,1040)</div><div class="res">both give (160, 1040) ✓</div></div>`,
  formula:{grid:`<p>K·(X_cam) ÷ depth  =  (K[R|t])·X ÷ depth. The matrix route = the step route.</p>`,
    symbols:[['step route','R,t → divide → K'],['matrix route','P = K[R|t], multiply, divide'],['agreement','a free arithmetic check']]},
@@ -1357,7 +1357,7 @@ const LESSONS=[
     hints:['P = K[R|t].','Same.','Always identical.'],diag:['They are identical.',null,'True even if behind.']}]},
 
 {id:'6.4',mod:6,n:'6.4',title:'Degrees of freedom of P',sub:'11 = 5 + 3 + 3',diagram:'dof',
- story:`How much information is in P? It has twelve entries, but P is only defined up to an overall scale, so one is redundant — leaving eleven real degrees of freedom. Those eleven split neatly: five from the intrinsics K, three from the rotation, three from the translation. This number is why calibration needs at least six points, and it is a favourite one-mark exam question.`,
+ story:`Let's count the information hiding inside P. It has twelve entries, but P is only defined up to an overall scale, so one of them is redundant — leaving eleven genuine degrees of freedom. Those eleven split in a very tidy way: five from the intrinsics K, three from the rotation, and three from the translation. This little number is why calibration needs at least six points, and it is a favourite one-mark question, so it is well worth keeping right at your fingertips.`,
  worked:`<div class="work"><div class="line">P has 12 entries</div><div class="line">defined up to scale → subtract 1</div><div class="res">11 DOF = 5 (K) + 3 (R) + 3 (t)</div></div>`,
  formula:{grid:`${MX([['DOF(P)','=','11'],['=','5 + 3 + 3']],{cap:'K + R + t'})}`,
    symbols:[['12','entries in the 3×4 P'],['−1','overall scale is free'],['11','= 5 (intrinsic) + 3 (rotation) + 3 (translation)']]},
@@ -1371,7 +1371,7 @@ const LESSONS=[
     hints:['K=5, R=3, t=3.','5+3+3.','That one.'],diag:[null,null,null]}]},
 
 {id:'6.5',mod:6,n:'6.5',title:'The camera centre satisfies PC = 0',sub:'Where the null space points',diagram:'centernull',
- story:`There is a elegant test for the camera centre: feed the homogeneous centre (C, 1) into P and you get all zeros. The centre is the one world point the camera cannot image — rays from it have no direction — so P sends it to the zero vector. Equivalently, C is the null vector of P. This both defines the centre and gives a clean way to recover it, matching C = −Rᵀt.`,
+ story:`Here is an elegant test for the camera centre that I rather enjoy. Feed the homogeneous centre (C, 1) into P and you get all zeros. The reason is lovely: the centre is the one world point the camera cannot photograph — rays from it have no direction — so P politely sends it to the zero vector. Put another way, C is the null vector of P, which both defines the centre and gives you a clean way to recover it, matching the C = −Rᵀt we found earlier.`,
  worked:`<p>Midterm camera, C = (0,5,0).</p>
   <div class="work"><div class="line">P·(0,5,0,1):</div><div class="line">row1: 400·0+320·5+0·0−1600·1 = 1600 − 1600 = 0</div><div class="line">row2: 0·0+240·5−400·0−1200·1 = 1200 − 1200 = 0</div><div class="res">row3: 0+1·5+0−5 = 0  → P(C,1) = (0,0,0) ✓</div></div>`,
  formula:{grid:`${MX([['P·(C, 1)','=','0']],{cap:'the camera centre is P\'s null vector'})}`,
@@ -1386,7 +1386,7 @@ const LESSONS=[
     hints:['The centre has no image.','All zeros.','0.'],diag:['C has no image.',null,'Not f.']}]},
 
 {id:'6.6',mod:6,n:'6.6',title:'Vanishing point of a direction',sub:'v = K R d',diagram:'vanish',
- story:`A world direction d (think of the way the rails point) has its own vanishing point in the image. Because a direction has no position, the translation drops out, and the vanishing point is simply K R d — rotate the direction into the camera, then apply the intrinsics, then divide. If the camera is not rotated, R is the identity and it is just K d. This is how you locate where parallel lines meet on the photo.`,
+ story:`Every world direction — think of the way the rails point — has its own vanishing point in the image, and finding it is pleasantly simple. Because a direction has no position, the translation quietly drops out, and the vanishing point is just K R d: rotate the direction into the camera, apply the intrinsics, then divide. If the camera is not turned, R is the identity and it is merely K d. This is exactly how you pin down where parallel lines will appear to meet on the photograph.`,
  worked:`<p>R = I, K rows (400 0 320),(0 400 240),(0 0 1), direction d = (1, 0, 1).</p>
   <div class="work"><div class="line">K·d = (400·1 + 320·1, 400·0 + 240·1, 1) = (720, 240, 1)</div><div class="res">÷ 1 → vanishing point (720, 240)</div></div>`,
  formula:{grid:`${MX([['v','=','K R d']],{cap:'rotate direction, apply K, divide'})}`,
@@ -1401,7 +1401,7 @@ const LESSONS=[
     line:v=>`vanishing point = (720, 240)`,hints:['(720, 240, 1) ÷ 1.','(720, 240).','Done.'],diag:v=>null}]},
 
 {id:'6.7',mod:6,n:'6.7',title:'Back-projection: the ray of a pixel',sub:'Direction Rᵀ K⁻¹ (u,v,1)',diagram:'backproj',
- story:`Reverse the camera. A pixel does not fix a point, but it fixes a ray: it starts at the camera centre C and shoots out in the direction Rᵀ K⁻¹ (u,v,1). Apply the inverse intrinsics to undo the pixel scaling, then the inverse rotation to swing it into world axes. Every 3D point along that ray maps to the same pixel — which is the precise reason a single image cannot recover depth. Click a pixel in the diagram and watch the ray fire.`,
+ story:`Let's run the camera in reverse for a moment. A pixel cannot fix a single point, but it does fix a ray — one that starts at the camera centre C and sets off in the direction Rᵀ K⁻¹ (u, v, 1). You undo the pixel scaling with the inverse intrinsics, then swing the result into world axes with the inverse rotation. Every 3D point along that ray lands on the same pixel, which is precisely, and finally, why a single image cannot recover depth. Click a pixel in the picture and watch its ray fire off into the scene.`,
  worked:`<p>Midterm camera, pixel = principal point (320, 240).</p>
   <div class="work"><div class="line">K⁻¹·(320,240,1) = (0, 0, 1)   (the optical axis in camera frame)</div><div class="line">Rᵀ·(0,0,1) = row 3 of R = (0, 1, 0)</div><div class="res">ray direction = (0, 1, 0) = world +y = the optical axis</div></div>`,
  formula:{grid:`${MX([['dir','=','Rᵀ K⁻¹ (u, v, 1)'],['ray','=','C + μ·dir']],{cap:'back-projected ray'})}`,
@@ -1418,7 +1418,7 @@ const LESSONS=[
     hints:['That is why depth is lost.','Same pixel.','One pixel.'],diag:['They share the pixel.',null,'They do map.']}]},
 /* ---------- MODULE 7 ---------- */
 {id:'7.1',mod:7,n:'7.1',title:'The calibration problem',sub:'From matched points to P',diagram:'calib',
- story:`Calibration runs the camera backwards. You photograph an object whose 3D shape you already know — usually a printed checkerboard — and you note where each known 3D corner lands in the image. Each 3D point paired with its pixel is a correspondence. With enough correspondences you can solve for the whole projection matrix P, and then pull K, R and t out of it. The checkerboard is popular because its corners are easy to detect precisely.`,
+ story:`Calibration is simply running the camera backwards, and it is a rather satisfying puzzle. You photograph an object whose shape you already know — usually a printed checkerboard — and you note where each known 3D corner lands in the image. Each 3D point paired with its pixel is a correspondence, and with enough of them you can solve for the whole matrix P, then draw K, R and t out of it. The checkerboard is a favourite precisely because its corners are so easy to pin down with confidence.`,
  worked:`<div class="work"><div class="line">known: 3D corners Xᵢ (on the board)</div><div class="line">measured: their pixels xᵢ (in the photo)</div><div class="res">unknown: P such that xᵢ ≈ P Xᵢ for all i</div></div>`,
  formula:{grid:`<p>Given correspondences Xᵢ ↔ xᵢ, find P with xᵢ = P Xᵢ (up to scale).</p>`,
    symbols:[['Xᵢ','a known 3D point (board corner)'],['xᵢ','its measured pixel'],['P','the camera we solve for']]},
@@ -1432,7 +1432,7 @@ const LESSONS=[
     hints:['P comes first.','Then decompose.','P then K,R,t.'],diag:['K comes after.',null,'All of P.']}]},
 
 {id:'7.2',mod:7,n:'7.2',title:'Two equations per point — the DLT',sub:'Stack A p = 0, solve by SVD',diagram:'calib',
- story:`Each correspondence gives two linear equations in the entries of P — one for the u coordinate and one for the v. P has eleven unknowns (twelve entries up to scale), so you need at least six points, because five points give only ten equations. Stack all the equations into one tall matrix A and look for the vector p with A p = 0. The clean solution is the right singular vector of A with the smallest singular value — this whole recipe is the Direct Linear Transform.`,
+ story:`Let's see how those correspondences actually give us P. Each one hands us two linear equations — one for u and one for v — and since P carries eleven unknowns (twelve entries, up to scale), you will need at least six points, because five would give only ten equations. Stack all the equations into one tall matrix A and look for the vector p with A p = 0. The cleanest solution is the singular vector of A with the smallest singular value — and this whole friendly recipe is the Direct Linear Transform.`,
  worked:`<div class="work"><div class="line">1 point → 2 equations</div><div class="line">11 unknowns → need ≥ 11 equations → ≥ 5.5 points</div><div class="line">so at least 6 points</div><div class="res">stack into A p = 0, solve by SVD (smallest singular vector)</div></div>`,
  formula:{grid:`${MX([['0ᵀ','−wᵢXᵢᵀ','yᵢXᵢᵀ'],['wᵢXᵢᵀ','0ᵀ','−xᵢXᵢᵀ']],{cap:'two rows per point, times (p₁;p₂;p₃) = 0'})}`,
    symbols:[['A','the stacked 2n × 12 matrix'],['p','the 12 entries of P as a vector'],['SVD','solve A p = 0: smallest-singular-value vector']]},
@@ -1449,7 +1449,7 @@ const LESSONS=[
     hints:['We minimise ‖Ap‖.','Smallest.','Last vector.'],diag:['That maximises it.',null,'Smallest.']}]},
 
 {id:'7.3',mod:7,n:'7.3',title:'Splitting P into K, R, t',sub:'RQ decomposition',diagram:'psplit',
- story:`Once you have P, you unpack it. The left 3×3 block M factors into an upper-triangular K and an orthogonal R by RQ decomposition — K holds the intrinsics, R the rotation. The centre comes from the null vector, and t follows. One caution: if all your calibration points lie on a single flat plane, the problem is degenerate and P cannot be found, so the board must be moved to several orientations or the points must span depth.`,
+ story:`Once you hold P in your hands, let's unpack it. The left 3×3 block, M, factors into an upper-triangular K and an orthogonal R by something called RQ decomposition — K keeps the intrinsics, R the rotation. The centre comes from the null vector, and t follows along behind. One gentle caution worth remembering: if all your calibration points lie on a single flat plane, the problem becomes degenerate and P cannot be found, so give the board some depth or several orientations.`,
  worked:`<div class="work"><div class="line">P = [ M | p₄ ]</div><div class="line">M = K R   (RQ: K upper-triangular, R orthogonal)</div><div class="line">centre C from the null vector of P</div><div class="res">t = −R C ; fix signs so K has positive diagonal</div></div>`,
  formula:{grid:`${MX([['M','=','K R']],{cap:'RQ decomposition of the left 3×3 block'})}`,
    symbols:[['M','left 3×3 block of P'],['K','upper-triangular intrinsics'],['R','orthogonal rotation'],['coplanar','all points in one plane ⇒ degenerate']]},
@@ -1463,7 +1463,7 @@ const LESSONS=[
     hints:['Rank-deficient.','Degenerate.','No solution.'],diag:['It fails.',null,'Not about R.']}]},
 
 {id:'7.4',mod:7,n:'7.4',title:'Lens distortion in one paragraph',sub:'Radial, not in P',diagram:'distort',
- story:`Real lenses bend straight lines near the edges — this is radial distortion, and the pinhole P does not model it. The effect grows with distance from the image centre: a point at radius r is pushed in or out by a factor L(r) that depends only on r. Calibration estimates a few distortion coefficients alongside K, and you undistort the image before treating it as an ideal pinhole. Chromatic distortion, where colours focus slightly differently, is a related lens effect.`,
+ story:`A quick and honest word about real lenses before we finish this module. They bend straight lines near the edges — that is radial distortion — and the ideal pinhole P simply does not model it. The effect grows with distance from the centre: a point at radius r is nudged in or out by a factor L(r) that depends only on r. In practice, calibration estimates a few distortion coefficients alongside K, and you undistort the image before treating it as a tidy pinhole. Slide k₁ and watch the straight grid gently bow.`,
  worked:`<div class="work"><div class="line">r = distance of a point from the image centre</div><div class="line">L(r) = 1 + k₁r + k₂r² + …</div><div class="res">corrected: x̂ = x_c + L(r)(x − x_c), same for y</div></div>`,
  formula:{grid:`${MX([['x̂','=','x_c + L(r)(x − x_c)'],['L(r)','=','1 + k₁r + k₂r² + …']],{cap:'radial correction'})}`,
    symbols:[['r','radius from the image centre'],['L(r)','radial scaling (1 at the centre)'],['k₁,k₂','distortion coefficients from calibration']]},
@@ -1478,7 +1478,7 @@ const LESSONS=[
 
 /* ---------- MODULE 8 ---------- */
 {id:'8.1',mod:8,n:'8.1',title:'“Explain” drills',sub:'Short written answers, keyword-checked',diagram:'conceptmap',
- story:`Graduate exams give marks for clear reasoning, not just numbers. These drills ask the "why" questions in plain words. Type a short answer; it is checked for the key ideas and you get a model answer to compare. Aim for one or two sentences that name the right concept. Treat the model answers as the exact phrasing an examiner wants to see.`,
+ story:`Graduate exams reward clear reasoning, not just the right number, so let's practise saying the "why" out loud. These drills ask the thinking questions in plain words; type a short answer and it will check for the key idea, then show you a model answer to compare against. Aim for one or two precise sentences that name the right concept — short and exact beats long and vague every time. Treat the model answers as the phrasing an examiner is quietly hoping to see.`,
  worked:`<div class="work"><div class="line">Marks come from naming the right idea clearly.</div><div class="res">Keep each answer to 1–2 precise sentences.</div></div>`,
  formula:{grid:`<p>No formula — these build the written half of your marks.</p>`,symbols:[['keyword check','your answer must contain the key idea'],['model answer','the examiner-ready phrasing']]},
  why:['Compute marks test arithmetic; explain marks test understanding.','Examiners look for the right term used correctly.','Short and precise beats long and vague.','Practising the phrasing makes it automatic under time.'],
@@ -1511,11 +1511,11 @@ const LESSONS=[
     model:'The image point where parallel world lines appear to meet — the image of their shared direction (a point at infinity).'}]},
 
 {id:'8.2',mod:8,n:'8.2',title:'Full mock exam',sub:'Two 20-mark questions, 40-minute timer',diagram:null,special:'exam',
- story:`This is the real thing: two exam-style questions worth about twenty marks each, with a forty-minute timer, laid out like paper. Work each part, then reveal the full marked solution. Question 1 is the professor's sample midterm; Question 2 mixes rotation, projection, vanishing points and calibration. Keep your calculator handy and show every line.`,
+ story:`This is the real rehearsal, and you are more ready for it than you think. Two exam-style questions of about twenty marks each, a forty-minute timer, and a layout just like the paper you will sit. Work each part carefully, then reveal the full marked solution and see how you did. Question 1 is the professor's own sample midterm; Question 2 blends rotation, projection, vanishing points and calibration. Keep your calculator close, show every line, and take your time.`,
  worked:'',formula:{grid:'',symbols:[]},why:[],mistakes:[],exam:[],practice:[]},
 
 {id:'8.3',mod:8,n:'8.3',title:'Printable summary',sub:'Every formula, mistake & missed question',diagram:null,special:'summary',
- story:`A one-page revision sheet: every formula in the chapter with its symbols, the common mistakes, and any mock-exam questions you got wrong with their solutions. Because the sandbox blocks the print dialog, take a screenshot to keep it.`,
+ story:`Here is your one-page revision sheet to carry into the exam — every formula with its symbols, the common mistakes gathered in one place, and any mock-exam parts you missed, each with its solution. Since the sandbox will not open a print dialog, just take a screenshot and keep it somewhere handy. Think of it as the friendly reminder you will be glad to have the night before.`,
  worked:'',formula:{grid:'',symbols:[]},why:[],mistakes:[],exam:[],practice:[]},
 /*__CHUNK2__*/
 ];
