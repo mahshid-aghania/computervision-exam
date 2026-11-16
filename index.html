@@ -8,7 +8,7 @@
 :root{
   --bg:#f5f3ec; --surface:#ffffff; --surface2:#f1eee5; --fg:#1a1920; --muted:#67626f;
   --line:#e3ddcf; --accent:#6b46ff; --accent-ink:#fff; --star:#f0a500;
-  --c1:#1f6fe0; --c2:#6b46ff; --good:#179a5a;
+  --c1:#1f6fe0; --c2:#6b46ff; --c3:#179a5a; --good:#179a5a;
   --r:16px; --shadow:0 1px 0 var(--line),0 14px 34px rgba(20,18,30,.07);
   --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
   --disp:'Space Grotesk','Inter',sans-serif; --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
@@ -16,13 +16,13 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#131118; --surface:#1d1a24; --surface2:#262130; --fg:#f1ecfb; --muted:#a49cb6;
   --line:#322c40; --accent:#a88dff; --accent-ink:#17102b; --star:#ffcf3f;
-  --c1:#5ea0ff; --c2:#a88dff; --good:#36c982;
+  --c1:#5ea0ff; --c2:#a88dff; --c3:#36c982; --good:#36c982;
   --shadow:0 1px 0 rgba(0,0,0,.3),0 16px 38px rgba(0,0,0,.5); color-scheme:dark;
 }}
 :root[data-theme="dark"]{
   --bg:#131118; --surface:#1d1a24; --surface2:#262130; --fg:#f1ecfb; --muted:#a49cb6;
   --line:#322c40; --accent:#a88dff; --accent-ink:#17102b; --star:#ffcf3f;
-  --c1:#5ea0ff; --c2:#a88dff; --good:#36c982;
+  --c1:#5ea0ff; --c2:#a88dff; --c3:#36c982; --good:#36c982;
   --shadow:0 1px 0 rgba(0,0,0,.3),0 16px 38px rgba(0,0,0,.5); color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -43,9 +43,9 @@ h1,h2,h3{font-family:var(--disp);line-height:1.15;text-wrap:balance;margin:0}
   border-radius:var(--r);padding:22px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .15s}
 .card:hover{transform:translateY(-3px)}
 .card .top{height:6px;border-radius:999px;margin:-22px -22px 18px;}
-.card.ch1 .top{background:var(--c1)}.card.ch2 .top{background:var(--c2)}
+.card.ch1 .top{background:var(--c1)}.card.ch2 .top{background:var(--c2)}.card.ch3 .top{background:var(--c3)}
 .card .num{font-family:var(--disp);font-weight:700;font-size:.9rem;letter-spacing:.1em;text-transform:uppercase}
-.card.ch1 .num{color:var(--c1)}.card.ch2 .num{color:var(--c2)}
+.card.ch1 .num{color:var(--c1)}.card.ch2 .num{color:var(--c2)}.card.ch3 .num{color:var(--c3)}
 .card h2{font-size:1.5rem;margin:6px 0 8px}
 .card .desc{color:var(--muted);font-size:1rem;min-height:3.2em}
 .topics{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
@@ -53,7 +53,7 @@ h1,h2,h3{font-family:var(--disp);line-height:1.15;text-wrap:balance;margin:0}
 .prog{margin-top:16px}
 .bar{height:9px;border-radius:999px;background:var(--surface2);overflow:hidden}
 .bar i{display:block;height:100%;width:0;border-radius:999px}
-.card.ch1 .bar i{background:var(--c1)}.card.ch2 .bar i{background:var(--c2)}
+.card.ch1 .bar i{background:var(--c1)}.card.ch2 .bar i{background:var(--c2)}.card.ch3 .bar i{background:var(--c3)}
 .prog .meta{display:flex;justify-content:space-between;font-size:.84rem;color:var(--muted);margin-top:7px;font-variant-numeric:tabular-nums}
 .prog .meta b{color:var(--fg)}
 .cta{display:inline-flex;align-items:center;gap:7px;margin-top:16px;font-weight:700;color:var(--accent)}
@@ -74,7 +74,7 @@ h1,h2,h3{font-family:var(--disp);line-height:1.15;text-wrap:balance;margin:0}
   <header class="hero">
     <div class="eyebrow">Graduate Computer Vision · Dr. Faisal Qureshi · Ontario Tech</div>
     <h1>Your exam-prep trainer</h1>
-    <p>Two full chapters, each a warm, beginner-first course: diagram → story → numbers → formula → why → guided practice, with a Notes library, a plain-words Dictionary, and a marked mock exam. Open-book and on paper, built to make graduate depth feel easy. Pick a chapter to begin — your progress is saved on this device.</p>
+    <p>Three full chapters, each a warm, beginner-first course: diagram → story → numbers → formula → why → guided practice, with a Notes library, a plain-words Dictionary, and a marked mock exam. Open-book and on paper, built to make graduate depth feel easy. Pick a chapter to begin — your progress is saved on this device.</p>
   </header>
 
   <main class="grid">
@@ -97,14 +97,24 @@ h1,h2,h3{font-family:var(--disp);line-height:1.15;text-wrap:balance;margin:0}
       <div class="prog"><div class="bar"><i id="bar2"></i></div><div class="meta"><span id="done2">0 lessons done</span><span>★ <b id="stars2">0</b></span></div></div>
       <div class="cta">Open Chapter 2 →</div>
     </a>
+
+    <a class="card ch3" href="./linefitting.html">
+      <div class="top"></div>
+      <div class="num">Chapter 3</div>
+      <h2>Line Fitting, Likelihood &amp; Classification</h2>
+      <div class="desc">Least squares and the cost bowl, the Gaussian and likelihood, why maximum likelihood <em>is</em> least squares, then logistic regression and softmax — regression and classification as one idea.</div>
+      <div class="topics"><span>least squares</span><span>design matrix</span><span>Gaussian</span><span>likelihood (MLE)</span><span>logistic</span><span>softmax</span></div>
+      <div class="prog"><div class="bar"><i id="bar3"></i></div><div class="meta"><span id="done3">0 lessons done</span><span>★ <b id="stars3">0</b></span></div></div>
+      <div class="cta">Open Chapter 3 →</div>
+    </a>
   </main>
 
-  <p class="foot">Progress and stars are stored in your browser (per chapter) and never leave this device. Chapter 1 saves under <code>camtrainer_v1</code>, Chapter 2 under <code>filtertrainer_v1</code>.</p>
+  <p class="foot">Progress and stars are stored in your browser (per chapter) and never leave this device. Chapter 1 saves under <code>camtrainer_v1</code>, Chapter 2 under <code>filtertrainer_v1</code>, Chapter 3 under <code>linefittrainer_v1</code>.</p>
 </div>
 
 <script>
 "use strict";
-var TOT1=38, TOT2=31; // total lessons per chapter (incl. exam & summary)
+var TOT1=38, TOT2=31, TOT3=28; // total lessons per chapter (incl. exam & summary)
 function read(key){try{var r=localStorage.getItem(key);if(!r)return{stars:{}};var o=JSON.parse(r);return o&&o.stars?o:{stars:{}};}catch(e){return{stars:{}};}}
 function count(o){var k=Object.keys(o.stars||{});var stars=k.reduce(function(a,id){return a+(o.stars[id]||0);},0);return{done:k.length,stars:stars};}
 function fill(prefix,data,total){
@@ -114,9 +124,9 @@ function fill(prefix,data,total){
   document.getElementById('stars'+prefix).textContent=c.stars;
   return c.stars;
 }
-var d1=read('camtrainer_v1'), d2=read('filtertrainer_v1');
-var s1=fill('1',d1,TOT1), s2=fill('2',d2,TOT2);
-document.getElementById('totalStars').textContent=s1+s2;
+var d1=read('camtrainer_v1'), d2=read('filtertrainer_v1'), d3=read('linefittrainer_v1');
+var s1=fill('1',d1,TOT1), s2=fill('2',d2,TOT2), s3=fill('3',d3,TOT3);
+document.getElementById('totalStars').textContent=s1+s2+s3;
 
 // theme (shared preference keys, falls back to system)
 var THEME_KEY='cvhub_theme';
